@@ -1,0 +1,22 @@
+.container-home {
+  background-color: #000000;
+
+  /* The actual gradient */
+  /* Direction: Diagonal (135 degrees) */
+  /* Colors: Starts with pure black, fades into a deep indigo */
+  background-image: linear-gradient(135deg, #000000 0%, #1e3c72 100%);
+
+  /* Ensure the gradient covers the entire viewport */
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+  width: auto;
+  /* Added to ensure text is visible on the dark background */
+  color: #f8f9fa; /* Bootstrap's default light text color */
+}
+/* Override specific Bootstrap classes that force dark text */
+.text-body-emphasis {
+  color: #fff !important;
+}
+.text-muted {
+  color: #ced4da !important; /* Lighter muted text for better visibility */
+}

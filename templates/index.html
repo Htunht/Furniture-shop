@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Htun Htun Aung | Developer Portfolio</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      xintegrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <style>
+      /* --- GLOBAL DARK THEME STYLES --- */
+      body {
+        /* Fallback color for older browsers */
+        background-color: #000000;
+
+        /* The actual gradient (Deep Space Indigo) */
+        background-image: linear-gradient(135deg, #000000 0%, #1e3c72 100%);
+
+        /* Ensure the gradient covers the entire viewport */
+        min-height: 100vh;
+        font-family: "Inter", sans-serif;
+        color: #f8f9fa; /* Default text to light */
+        padding-top: 50px; /* Add some top padding */
+        padding-bottom: 50px;
+      }
+
+      /* Override specific Bootstrap classes that force dark text */
+      .text-body-emphasis {
+        color: #fff !important;
+      }
+      .text-muted {
+        color: #ced4da !important; /* Lighter muted text for better visibility */
+      }
+      .border-bottom {
+        border-color: #1e3c72 !important; /* Darken the divider line */
+      }
+
+      /* --- GLASS MORPHISM EFFECT --- */
+      .card-glass {
+        background: rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1.5rem; /* Larger border radius for modern feel */
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      }
+
+      /* --- HERO IMAGE ANIMATION --- */
+      .hero-image {
+        transition: transform 0.5s ease, box-shadow 0.5s ease;
+      }
+      .hero-image:hover {
+        transform: scale(1.03);
+        box-shadow: 0 10px 40px rgba(138, 180, 248, 0.3);
+      }
+
+      /* --- HANGING ICONS SECTION STYLES --- */
+      .icon-square {
+        /* Custom background for icons to make them pop on the gradient */
+        background: #102446 !important; /* Slightly darker solid base */
+        border: 2px solid #3c5a94; /* Subtle blue border */
+        color: #8ab4f8 !important; /* Light blue icon color */
+        border-radius: 1rem; /* More pronounced rounding */
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        box-shadow: 0 0 15px rgba(138, 180, 248, 0.2); /* Subtle glow */
+      }
+      .icon-square:hover {
+        transform: translateY(-8px); /* Deeper lift on hover */
+        box-shadow: 0 5px 20px rgba(138, 180, 248, 0.7); /* Stronger glow */
+      }
+
+      /* --- BUTTON STYLES --- */
+      .btn-primary {
+        background-color: #8ab4f8;
+        border-color: #8ab4f8;
+        color: #1e3c72;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(138, 180, 248, 0.4);
+      }
+      .btn-primary:hover {
+        background-color: #9cbff9;
+        border-color: #9cbff9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(138, 180, 248, 0.6);
+      }
+      .btn-outline-light {
+        color: #8ab4f8 !important;
+        border-color: #8ab4f8 !important;
+        transition: all 0.3s ease;
+      }
+      .btn-outline-light:hover {
+        background-color: #8ab4f8 !important;
+        color: #000 !important;
+        border-color: #8ab4f8 !important;
+      }
+
+      /* Style dark form controls */
+      .form-control {
+        background-color: #1a1a2e; /* Very dark background */
+        color: #f8f9fa; /* Light text color */
+        border: 1px solid #3c5a94; /* Subtle border matching the theme */
+      }
+      .form-control::placeholder {
+        color: #adb5bd; /* Lighter placeholder text */
+      }
+
+      /* Custom badge color for better visibility */
+      .badge-custom-blue {
+        background-color: #3c5a94 !important;
+        color: #fff !important;
+        transition: background-color 0.3s ease;
+      }
+      .badge-custom-blue:hover {
+        background-color: #5d7fb8 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- SVG SYMBOL DEFINITIONS (for Bootstrap Icons) -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+      <symbol id="code-slash" viewBox="0 0 16 16">
+        <path
+          d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"
+        />
+      </symbol>
+      <symbol id="shield-fill" viewBox="0 0 16 16">
+        <path
+          fill-rule="evenodd"
+          d="M8 0c-.69 0-1.843.275-3.23.708C1.522 1.954.067 4.137.067 8s1.455 6.046 4.703 7.292C6.157 15.725 7.31 16 8 16s1.843-.275 3.23-.708c3.248-1.246 4.703-3.43 4.703-7.292S14.478 1.954 11.23.708C9.843.275 8.69 0 8 0z"
+        />
+      </symbol>
+      <symbol id="tools" viewBox="0 0 16 16">
+        <path
+          d="M1 0a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1zm6 0a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1zM1 7a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1zm6 0a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"
+        />
+      </symbol>
+      <symbol id="envelope-fill" viewBox="0 0 16 16">
+        <path
+          fill-rule="evenodd"
+          d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M14 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M14 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M14 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M16 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M0 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M0 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          d="M0 4.697v7.026v.025v.19v.111v.114a1.5 1.5 0 0 0 2 .5H14a1.5 1.5 0 0 0 2-.5v-.114v-.11v-.19v-.025V4.697A.05.05 0 0 1 16 4.697z"
+        />
+        <path
+          fill-rule="evenodd"
+          d="M8 9.585 1.397 4.542 1 4.735v7.507c0 .753.376 1.517 1 1.517h12c.624 0 1-.764 1-1.517V4.735l-.397-.193L8 9.585Z"
+        />
+      </symbol>
+    </svg>
+
+    <!-- 1. HERO SECTION -->
+    <!-- Added text-center to the container for better alignment on mobile -->
+    <div class="container col-xxl-8 px-4 py-5 text-center">
+      <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+        <div class="col-10 col-sm-8 col-lg-6 mx-auto">
+          <img
+            src="/images/Deku.png"
+            class="d-block mx-lg-auto img-fluid rounded-4 shadow-lg hero-image"
+            alt="Placeholder for Htun Htun Aung"
+            width="700"
+            height="500"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='https://placehold.co/700x500/1e3c72/FFFFFF?text=Developer+Image'"
+          />
+        </div>
+        <!-- Adjusted text alignment for large screens -->
+        <div class="col-lg-6 text-center text-lg-start">
+          <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3">
+            Hey, there! I'm <br />
+            <span style="color: #8ab4f8; font-weight: 700">Htun Htun Aung</span>
+          </h1>
+          <p class="lead">
+            I'm a passionate web developer with expertise in creating dynamic
+            and responsive websites. Welcome to my portfolio!
+          </p>
+          <!-- Button alignment adjusted -->
+          <div
+            class="d-grid gap-2 d-md-flex justify-content-md-center justify-content-lg-start"
+          >
+            <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">
+              View Projects
+            </button>
+            <button type="button" class="btn btn-outline-light btn-lg px-4">
+              Contact Me
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. ABOUT ME SECTION -->
+    <div class="container col-xxl-8 px-4 py-5" id="about-me">
+      <h2 class="pb-2 border-bottom text-body-emphasis mb-5">About Me</h2>
+      <div class="row align-items-center p-4 card-glass">
+        <!-- Applied glass effect to the about card -->
+        <div class="col-lg-12">
+          <p class="lead mb-4 text-muted">
+            My journey into web development began with a fascination for how
+            simple lines of code could bring complex ideas to life on a screen.
+            Over the years, I've honed my skills in front-end technologies like
+            HTML, CSS, and modern JavaScript frameworks (React and Angular),
+            focusing on crafting highly responsive and intuitive user
+            experiences. I believe that excellent software should be
+            aesthetically pleasing, performant, and accessible to everyone.
+          </p>
+          <p class="mb-4 text-muted">
+            Beyond development, I enjoy solving complex problems, learning new
+            technologies, and contributing to open-source projects. I'm
+            currently expanding my expertise in cloud services to build scalable
+            full-stack applications.
+          </p>
+
+          <!-- SKILL BADGES -->
+          <div class="d-flex flex-wrap gap-3 pt-3">
+            <span
+              class="badge rounded-pill text-bg-primary shadow-sm px-4 py-2 badge-custom-blue"
+              >Full-Stack Developer</span
+            >
+            <span
+              class="badge rounded-pill text-bg-secondary shadow-sm px-4 py-2 badge-custom-blue"
+              >JavaScript ES6+</span
+            >
+            <span
+              class="badge rounded-pill text-bg-info shadow-sm px-4 py-2 badge-custom-blue"
+              >Bootstrap 5</span
+            >
+            <span
+              class="badge rounded-pill text-bg-warning shadow-sm px-4 py-2 badge-custom-blue"
+              >React/Angular</span
+            >
+            <span
+              class="badge rounded-pill text-bg-danger shadow-sm px-4 py-2 badge-custom-blue"
+              >Firestore DB</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. FEATURES/ICONS SECTION (Core Skills) -->
+    <div class="container px-4 py-5 second-container" id="hanging-icons">
+      <h2 class="pb-2 border-bottom text-body-emphasis">My Core Skills</h2>
+      <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+        <!-- Feature 1: Development -->
+        <div class="col d-flex align-items-start">
+          <div
+            class="icon-square d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3"
+          >
+            <svg
+              class="bi"
+              width="1em"
+              height="1em"
+              role="img"
+              aria-label="Code"
+            >
+              <use xlink:href="#code-slash"></use>
+            </svg>
+          </div>
+          <div>
+            <h3 class="fs-2 text-body-emphasis">Web Development</h3>
+            <p class="text-muted">
+              Expert in modern JavaScript, utilizing frameworks like React and
+              Angular to build scalable, high-performance web applications.
+            </p>
+            <a href="#" class="btn btn-primary"> See Tech Stack </a>
+          </div>
+        </div>
+
+        <!-- Feature 2: Responsive Design -->
+        <div class="col d-flex align-items-start">
+          <div
+            class="icon-square d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3"
+          >
+            <svg
+              class="bi"
+              width="1em"
+              height="1em"
+              role="img"
+              aria-label="Security"
+            >
+              <use xlink:href="#shield-fill"></use>
+            </svg>
+          </div>
+          <div>
+            <h3 class="fs-2 text-body-emphasis">Responsive Design</h3>
+            <p class="text-muted">
+              Dedicated to mobile-first development, ensuring optimal viewing
+              and interaction across all devices and screen sizes.
+            </p>
+            <a href="#" class="btn btn-primary"> Learn More </a>
+          </div>
+        </div>
+
+        <!-- Feature 3: Backend Tools -->
+        <div class="col d-flex align-items-start">
+          <div
+            class="icon-square d-inline-flex align-items-center justify-content-center fs-4 flex-shrink-0 me-3"
+          >
+            <svg
+              class="bi"
+              width="1em"
+              height="1em"
+              role="img"
+              aria-label="Tools"
+            >
+              <use xlink:href="#tools"></use>
+            </svg>
+          </div>
+          <div>
+            <h3 class="fs-2 text-body-emphasis">Backend Integration</h3>
+            <p class="text-muted">
+              Proficient in connecting front-end applications with robust
+              server-side APIs and cloud platforms like Firebase/Firestore.
+            </p>
+            <a href="#" class="btn btn-primary"> View Tools </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. CONTACT ME SECTION -->
+    <div class="container col-xxl-6 px-4 py-5" id="contact-me">
+      <h2 class="pb-2 border-bottom text-body-emphasis mb-5 text-center">
+        Get In Touch
+      </h2>
+      <p class="text-center lead text-muted mb-4">
+        Have a project idea or just want to chat? Send me a message!
+      </p>
+      <!-- Applied glass effect here -->
+      <div class="p-5 shadow-lg card-glass">
+        <form>
+          <div class="mb-3">
+            <label for="contactName" class="form-label text-white"
+              >Full Name</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="contactName"
+              placeholder="Your Name"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="contactEmail" class="form-label text-white"
+              >Email Address</label
+            >
+            <input
+              type="email"
+              class="form-control"
+              id="contactEmail"
+              placeholder="name@example.com"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label for="contactMessage" class="form-label text-white"
+              >Message</label
+            >
+            <textarea
+              class="form-control"
+              id="contactMessage"
+              rows="4"
+              placeholder="How can I help you?"
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-100">
+            <svg class="bi me-2" width="1em" height="1em">
+              <use xlink:href="#envelope-fill"></use>
+            </svg>
+            Send Message
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      xintegrity="sha384-ENjdO4Dr2bkBIFxQpeoA6V6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
