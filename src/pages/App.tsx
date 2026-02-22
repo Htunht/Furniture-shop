@@ -22,6 +22,7 @@ function App() {
   if (!session) {
     return null;
   }
+  
   const TestAuth = async () => {
     try {
       const response = await fetch("http://localhost:8080/api/me", {
