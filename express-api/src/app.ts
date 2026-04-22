@@ -2,6 +2,7 @@ import express from "express";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import { auth } from "./lib/auth";
+import { authGuard } from "./middleware/auth";
 
 const app = express();
 
@@ -14,14 +15,15 @@ app.use(
   }),
 );
 
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all("/api/auth/*splat", toNodeHandler(auth)); // api/auth ထဲက အကုန် တာဝန်ယူမယ်
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
+app.get("/", authGuard, (req, res) => {
   res.send("Hello FullStack Developer!");
 });
 
+// /api/me ဆိုတာကို အသုံးပြုပြီး authentication ကို ဖြတ်သန်းပြီး data ကို ယူပါမယ်
 app.get("/api/me", async (req, res) => {
   const session = await auth.api.getSession({
     headers: fromNodeHeaders(req.headers),

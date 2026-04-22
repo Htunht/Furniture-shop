@@ -1,11 +1,12 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { emailOTP } from "better-auth/plugins";
+import { emailOTP, admin } from "better-auth/plugins";
 import { createAuthMiddleware, APIError } from "better-auth/api";
 import prisma from "./prisma";
 import { sendEmail } from "./email";
 import { passwordSchema } from "./validation";
 import { getResetPasswordEmailHtml } from "./email-template";
+import { getVerificationEmailHtml } from "./verify-email";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -17,6 +18,7 @@ export const auth = betterAuth({
   },
 
   plugins: [
+    admin(),
     emailOTP({
       // emailOTP plugin မှာ Link ပို့ချင်ရင်လည်း sendVerificationOTP ကိုပဲ သုံးရပါတယ်
       async sendVerificationOTP({ email, otp, type }) {
@@ -31,10 +33,11 @@ export const auth = betterAuth({
           });
         } else {
           // Email Verification အတွက် OTP ပို့ပေးမည့်အပိုင်း
+          const htmlContent = getVerificationEmailHtml(otp);
           await sendEmail({
             to: email,
             subject: "Verify Your Email",
-            text: `Your OTP for email verification is: ${otp}`,
+            text: htmlContent,
           });
         }
       },

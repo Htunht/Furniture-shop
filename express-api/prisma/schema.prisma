@@ -13,19 +13,24 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {   // Without ?, the field is required and must have a value when creating a new record
+model User {
   id            String    @id
   name          String
   email         String
   emailVerified Boolean   @default(false)
-  image         String?  // ? means that the field is optional
+  image         String?
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt   // Data ချိန်းပြောင်းလဲသည့်အခါ အလိုအလျောက် update လုပ်ပေးမည်
+  updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
 
+  role       String    @default("user")
+  banned     Boolean   @default(false)
+  banReason  String?
+  banExpires DateTime?
+
   @@unique([email])
-  @@map("user")  // Map the model to the "user" table in the database
+  @@map("user")
 }
 
 model Session {
@@ -39,8 +44,11 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // index for faster userId lookups
+  impersonatedBy String?
+
   @@unique([token])
-  @@index([userId]) // User ID အပေါ် index တစ်ခုဖန်တီးပါ, ဒါက session တွေကို userId နဲ့ အလျင်အမြန် ရှာဖွေဖို့ ကူညီပါလိမ့်မယ်
+  @@index([userId])
   @@map("session")
 }
 
@@ -74,4 +82,43 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @db.VarChar(100)
+  products Product[]
+
+  @@map("category")
+}
+
+model Type {
+  id       String    @id @default(cuid())
+  name     String
+  products Product[]
+
+  @@map("type")
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  name        String        @db.VarChar(100)
+  description String        @db.Text
+  price       Decimal       @db.Decimal(10, 2)
+  discount    Decimal       @db.Decimal(10, 2)
+  rating      Int           @default(4) @db.SmallInt
+  status      ProductStatus @default(PUBLISHED)
+  inventory   Int           @default(0) @db.SmallInt
+  categoryId  String
+  typeId      String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  type        Type          @relation(fields: [typeId], references: [id])
+
+  @@map("product")
 }

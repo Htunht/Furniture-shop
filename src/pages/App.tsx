@@ -28,7 +28,7 @@ function App() {
       const response = await fetch("http://localhost:8080/api/me", {
         credentials: "include",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json",   // မဖြစ်မနေထည့်ပေးရတယ်နော်
         },
       });
       if (!response.ok) {
