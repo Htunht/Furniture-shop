@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Home, ShoppingBag, Info, Phone, ArrowRight } from "lucide-react";
-import { Link } from "react-router";
+import { NavLink } from "react-router"; // Use NavLink instead of Link
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -8,8 +8,8 @@ export function MobileNav() {
   const navLinks = [
     { name: "Home", href: "/", icon: Home },
     { name: "Shop", href: "#", icon: ShoppingBag },
-    { name: "About", href: "#", icon: Info },
-    { name: "Contact", href: "#", icon: Phone },
+    { name: "About", href: "/about", icon: Info },
+    { name: "Contact", href: "/contact", icon: Phone },
   ];
 
   return (
@@ -36,18 +36,43 @@ export function MobileNav() {
           <nav className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <Dialog.Close key={link.name} asChild>
-                <Link
+                <NavLink
                   to={link.href}
-                  className="group flex items-center justify-between rounded-xl px-4 py-4 text-base font-semibold hover:bg-primary/5 transition-all active:scale-[0.98]"
+                  className={({ isActive }) => `
+                    group flex items-center justify-between rounded-xl px-4 py-4 text-base font-semibold transition-all active:scale-[0.98]
+                    ${
+                      isActive
+                        ? "bg-primary/10 text-primary shadow-sm" // Active Background and Text
+                        : "hover:bg-primary/5 text-foreground" // Default/Hover state
+                    }
+                  `}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                      <link.icon className="h-5 w-5" />
-                    </div>
-                    <span>{link.name}</span>
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
-                </Link>
+                  {({ isActive }) => (
+                    <>
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`
+                          flex h-10 w-10 items-center justify-center rounded-xl transition-colors
+                          ${
+                            isActive
+                              ? "bg-primary text-primary-foreground" // Icon container color when active
+                              : "bg-muted group-hover:bg-primary/10 group-hover:text-primary"
+                          }
+                        `}
+                        >
+                          <link.icon className="h-5 w-5" />
+                        </div>
+                        <span>{link.name}</span>
+                      </div>
+                      <ArrowRight
+                        className={`
+                        h-4 w-4 transition-all 
+                        ${isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"}
+                      `}
+                      />
+                    </>
+                  )}
+                </NavLink>
               </Dialog.Close>
             ))}
           </nav>

@@ -9,13 +9,23 @@ import verifyOTPPage from "./pages/auth/verify-otp";
 import ConfirmPasswordPage from "./pages/auth/ConfirmPassword";
 import ForgetPassword from "./pages/auth/ForgetPassword";
 import resetPassword from "./components/auth/reset-password";
+import WishlistPage from "./pages/auth/Wishlist";
+import AboutPage from "./pages/About";
+import ContactPage from "./pages/Contact";
+import FAQPage from "./pages/FAQ";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: RootLayout,
     ErrorBoundary: ErrorScreen,
-    children: [{ index: true, Component: HomeScreen }],
+    children: [
+      { index: true, Component: HomeScreen },
+      { path: "wishlist", Component: WishlistPage },
+      { path: "about", Component: AboutPage },
+      { path: "contact", Component: ContactPage },
+      { path: "faq", Component: FAQPage }
+    ],
   },
   {
     path: "/login",

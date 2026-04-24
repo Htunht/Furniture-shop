@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useSession, signOut } from "@/lib/auth-client";
-import { ShoppingCart, LogOut, Menu } from "lucide-react";
+import { ShoppingCart, LogOut, Menu, Heart } from "lucide-react";
 import { Link } from "react-router";
 import { useCartStore } from "@/store/useCartStore";
+import { useWishlistStore } from "@/store/useWishlistStore";
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CartSheet } from "../cart/CartSheet";
@@ -13,6 +14,7 @@ export function Navbar() {
   const cartCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
   );
+  const wishlistItemsCount = useWishlistStore((state) => state.items.length);
   const [mounted, setMounted] = useState(false);
 
   // Avoid hydration mismatch for persisted state
@@ -21,6 +23,7 @@ export function Navbar() {
   }, []);
 
   const displayCount = mounted ? cartCount : 0;
+  const displayWishlistCount = mounted ? wishlistItemsCount : 0;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
@@ -59,13 +62,13 @@ export function Navbar() {
             Shop
           </Link>
           <Link
-            to="#"
+            to="/about"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
           >
             About
           </Link>
           <Link
-            to="#"
+            to="/contact"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
           >
             Contact
@@ -73,6 +76,20 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link to="/wishlist">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative transition-transform active:scale-95"
+            >
+              <Heart className="h-5 w-5" />
+              {displayWishlistCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white animate-in zoom-in">
+                  {displayWishlistCount}
+                </span>
+              )}
+            </Button>
+          </Link>
           <Dialog.Root>
             <Dialog.Trigger asChild>
               <Button

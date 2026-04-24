@@ -1,5 +1,6 @@
 import { Outlet } from "react-router";
 import { Navbar } from "./NavBar";
+import { Footer } from "./Footer";
 
 function RootLayout() {
   return (
@@ -8,13 +9,7 @@ function RootLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t py-12 bg-muted/30">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2026 Technortal Furniture Store. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
