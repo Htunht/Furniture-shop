@@ -23,6 +23,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
+  favorites     Favorite[]
 
   role       String    @default("user")
   banned     Boolean   @default(false)
@@ -117,8 +118,31 @@ model Product {
   inventory   Int           @default(0) @db.SmallInt
   categoryId  String
   typeId      String
+  imageUrl    String?
   category    Category      @relation(fields: [categoryId], references: [id])
   type        Type          @relation(fields: [typeId], references: [id])
+  images      Image[]
+  favorites   Favorite[]
 
   @@map("product")
+}
+
+model Image {
+  id        String  @id @default(cuid())
+  url       String
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("image")
+}
+
+model Favorite {
+  id        String  @id @default(cuid())
+  userId    String
+  productId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("favorite")
 }

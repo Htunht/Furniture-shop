@@ -3,6 +3,8 @@ import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import { auth } from "./lib/auth";
 import { authGuard } from "./middleware/auth";
+import router from "./routes";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
@@ -15,10 +17,24 @@ app.use(
   }),
 );
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: "Too many requests from this IP, please try again after 15 minutes",
+});
+
+app.use(limiter);
+
 app.all("/api/auth/*splat", toNodeHandler(auth)); // api/auth ထဲက အကုန် တာဝန်ယူမယ်
+
+app.use("/uploads", express.static("public/uploads"));
 
 app.use(express.json());
 
+app.use(router)
+/*
 app.get("/", authGuard, (req, res) => {
   res.send("Hello FullStack Developer!");
 });
@@ -30,4 +46,7 @@ app.get("/api/me", async (req, res) => {
   });
   return res.json(session);
 });
+*/
+
+
 export default app;
