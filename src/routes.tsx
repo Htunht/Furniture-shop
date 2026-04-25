@@ -25,6 +25,7 @@ import ShopCategoryPage from "./pages/ShopCategory";
 import ShopPage from "./pages/Shop";
 import AccountPage from "./pages/Account";
 import CheckoutPage from "./pages/Checkout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
       { path: "shop/:category", Component: ShopCategoryPage },
       { path: "shop", Component: ShopPage }
     ],
+  },
+  {
+    path: "/admin",
+    Component: AdminDashboard,
   },
   {
     path: "/login",

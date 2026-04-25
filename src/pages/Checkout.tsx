@@ -43,13 +43,67 @@ export default function CheckoutPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      toast.success("Order placed successfully!");
+    try {
+      const orderNumber = `TB-${Math.floor(100000 + Math.random() * 900000)}`;
+
+      // Call the order confirmation email API
+      const response = await fetch("http://localhost:8080/api/v1/order/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          customerName: `${formData.firstName} ${formData.lastName}`,
+          orderNumber,
+          items: items.map((item) => ({
+            productId: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            discount: item.discount,
+          })),
+          total: total,
+          address: `${formData.street}, ${formData.city}, ${formData.country}`,
+          paymentMethod: paymentMethod,
+          orderTime: new Date().toLocaleString('en-US', { 
+            dateStyle: 'medium', 
+            timeStyle: 'short' 
+          }),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send order confirmation");
+      }
+
+      toast.success("Order placed successfully! Confirmation email sent.");
+      
+      // Save order details for purchase history
+      const newOrder = {
+        id: orderNumber,
+        items: items,
+        total: total,
+        date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        status: "Processing",
+        paymentMethod: paymentMethod,
+      };
+
+      const existingOrders = JSON.parse(localStorage.getItem("allOrders") || "[]");
+      localStorage.setItem("allOrders", JSON.stringify([newOrder, ...existingOrders]));
+      localStorage.setItem("lastOrder", JSON.stringify(newOrder)); // Keep lastOrder for Track page
+
+      // Increment total orders count
+      const currentCount = parseInt(localStorage.getItem("totalOrdersCount") || "10");
+      localStorage.setItem("totalOrdersCount", (currentCount + 1).toString());
+
       clearCart();
-      navigate("/track-order");
-    }, 2000);
+      navigate(`/track-order?id=${orderNumber}`);
+    } catch (error) {
+      console.error("Order error:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (isPending) {
@@ -98,7 +152,7 @@ export default function CheckoutPage() {
           <div className="space-y-16">
             <header>
               <h1 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-4 font-outfit">
-                Checkout.
+                Checkout
               </h1>
               <p className="text-[#8B857A] font-medium uppercase tracking-widest text-xs">
                 Secure Architectural Transaction

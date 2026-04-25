@@ -1,36 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router";
 import {
   Truck,
   MapPin,
-  CheckCircle2,
   Clock,
   Box,
-  ChevronRight,
   Search,
   Phone,
   Mail,
+  Package,
+  ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { motion, AnimatePresence } from "framer-motion";
 
-const orderSteps = [
+const defaultOrderSteps = [
   {
     status: "Order Placed",
     date: "April 22, 2026",
     time: "10:30 AM",
     completed: true,
+    description: "Your order has been received and is being prepared."
   },
   {
     status: "Processing",
     date: "April 23, 2026",
     time: "02:15 PM",
     completed: true,
+    description: "Our craftsmen are selecting and inspecting your pieces."
   },
   {
     status: "Shipped",
     date: "April 24, 2026",
     time: "09:00 AM",
     completed: true,
+    description: "Package has been handed over to Tiger Express."
   },
   {
     status: "In Transit",
@@ -38,18 +44,40 @@ const orderSteps = [
     time: "Updating",
     completed: false,
     active: true,
+    description: "Your package is currently moving towards the local distribution center."
   },
   {
     status: "Delivered",
     date: "Estimated April 28",
     time: "By 8:00 PM",
     completed: false,
+    description: "Signature will be required upon delivery."
   },
 ];
 
 export default function TrackOrderPage() {
-  const [orderId, setOrderId] = useState("");
-  const [showResult, setShowResult] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [orderId, setOrderId] = useState(searchParams.get("id") || "");
+  const [showResult, setShowResult] = useState(!!searchParams.get("id"));
+  const [orderData, setOrderData] = useState<any>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  useEffect(() => {
+    if (showResult) {
+      const savedOrder = localStorage.getItem("lastOrder");
+      if (savedOrder) {
+        const parsed = JSON.parse(savedOrder);
+        if (parsed.id === orderId || !orderId) {
+          setOrderData(parsed);
+          if (!orderId) setOrderId(parsed.id);
+        }
+      }
+    }
+    
+    // Simulate map loading
+    const timer = setTimeout(() => setMapLoaded(true), 1000);
+    return () => clearTimeout(timer);
+  }, [showResult, orderId]);
 
   const handleTrack = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,277 +85,345 @@ export default function TrackOrderPage() {
   };
 
   return (
-    <div className="bg-[#F9F8F6] text-[#2C2926] min-h-screen">
+    <div className="bg-[#F9F8F6] text-[#2C2926] min-h-screen font-inter">
       {/* Search Hero */}
-      <section className="py-20 md:py-32 bg-[#EBE7DF] border-b border-[#E5E0D8]">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm tracking-[0.4em] uppercase mb-4 font-bold text-[#8B857A]">
-            Real-Time Logistics
-          </p>
-          <h1 className="text-5xl md:text-8xl font-bold uppercase tracking-tighter mb-12 font-outfit">
-            Track Order
-          </h1>
+      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_#EBE7DF_0%,_transparent_60%)] opacity-50" />
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-[#EBE7DF] opacity-20 blur-3xl -rotate-12 translate-x-1/2" />
+        </div>
 
-          <form
-            onSubmit={handleTrack}
-            className="max-w-xl mx-auto flex flex-col sm:flex-row gap-4"
+        <div className="container mx-auto px-4 relative z-10 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8B857A]" />
-              <Input
-                placeholder="Enter Order ID (e.g. #TB-88291)"
-                value={orderId}
-                onChange={(e) => setOrderId(e.target.value)}
-                className="bg-white border-[#E5E0D8] pl-12 h-14 rounded-none focus-visible:ring-[#2C2926] shadow-sm text-lg"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="h-14 px-10 bg-[#2C2926] text-white hover:bg-stone-700 rounded-none uppercase font-bold tracking-widest text-xs transition-all"
+            <p className="text-[10px] tracking-[0.5em] uppercase mb-6 font-bold text-[#8B857A]">
+              Logistic Excellence
+            </p>
+            <h1 className="text-6xl md:text-9xl font-bold uppercase tracking-tighter mb-12 font-outfit leading-none">
+              Track <span className="italic font-light text-[#8B857A]">Live</span>
+            </h1>
+
+            <form
+              onSubmit={handleTrack}
+              className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-0 shadow-2xl"
             >
-              Track Status
-            </Button>
-          </form>
-          <p className="mt-6 text-sm text-[#5C574F]">
-            Check your confirmation email for the tracking number.
-          </p>
+              <div className="relative flex-1">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-[#8B857A]" />
+                <Input
+                  placeholder="Enter Order ID (e.g. #TB-88291)"
+                  value={orderId}
+                  onChange={(e) => setOrderId(e.target.value)}
+                  className="bg-white border-0 pl-16 h-20 rounded-none focus-visible:ring-0 text-xl font-medium placeholder:text-[#BBB]"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="h-20 px-12 bg-[#2C2926] text-white hover:bg-stone-800 rounded-none uppercase font-bold tracking-[0.2em] text-xs transition-all flex items-center gap-3 group"
+              >
+                Track Status
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </form>
+          </motion.div>
         </div>
       </section>
 
-      {showResult ? (
-        <section className="py-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-              {/* Main Tracking View */}
-              <div className="lg:col-span-2 space-y-8">
-                <div className="bg-white border border-[#E5E0D8] p-8 md:p-12 shadow-sm">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 pb-8 border-b border-[#E5E0D8]">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-[#8B857A] mb-1">
-                        Order ID
-                      </p>
-                      <h2 className="text-2xl font-bold font-outfit">
-                        {orderId}
-                      </h2>
+      <AnimatePresence mode="wait">
+        {showResult ? (
+          <motion.section
+            key="results"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="pb-32"
+          >
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_450px] gap-12">
+                {/* Main Tracking Content */}
+                <div className="space-y-12">
+                  <div className="bg-white p-8 md:p-16 shadow-sm border border-[#E5E0D8]">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16">
+                      <div>
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#8B857A]">
+                            Live Update • Just Now
+                          </p>
+                        </div>
+                        <h2 className="text-4xl font-bold font-outfit uppercase tracking-tighter">
+                          #{orderId}
+                        </h2>
+                      </div>
+                      <div className="grid grid-cols-2 gap-8 text-right md:text-left">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A] mb-2">
+                            Est. Delivery
+                          </p>
+                          <p className="font-bold text-lg uppercase">April 28, 2026</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A] mb-2">
+                            Shipping Method
+                          </p>
+                          <p className="font-bold text-lg uppercase">Tiger White-Glove</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex gap-12">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-[#8B857A] mb-1">
-                          Estimated Delivery
-                        </p>
-                        <p className="font-bold">April 28, 2026</p>
+
+                    {/* Horizontal Progress Bar */}
+                    <div className="relative mb-20 px-4">
+                      <div className="absolute top-1/2 left-0 w-full h-px bg-[#EBE7DF] -translate-y-1/2" />
+                      <div 
+                        className="absolute top-1/2 left-0 h-1 bg-[#2C2926] -translate-y-1/2 transition-all duration-1000" 
+                        style={{ width: '75%' }} 
+                      />
+                      <div className="relative flex justify-between">
+                        {['Placed', 'Processing', 'Shipped', 'Transit', 'Delivered'].map((label, i) => (
+                          <div key={label} className="flex flex-col items-center gap-4">
+                            <div className={`w-4 h-4 rounded-full border-4 ${
+                              i < 3 ? 'bg-[#2C2926] border-[#2C2926]' : 
+                              i === 3 ? 'bg-white border-[#2C2926] animate-pulse' : 
+                              'bg-white border-[#EBE7DF]'
+                            }`} />
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${i <= 3 ? 'text-[#2C2926]' : 'text-[#8B857A]'}`}>
+                              {label}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-[#8B857A] mb-1">
-                          Carrier
-                        </p>
-                        <p className="font-bold">Tiger Express</p>
-                      </div>
+                    </div>
+
+                    {/* Details List */}
+                    <div className="space-y-10">
+                      {defaultOrderSteps.map((step, idx) => (
+                        <div key={idx} className={`flex gap-8 ${!step.completed && !step.active ? 'opacity-40' : ''}`}>
+                          <div className="w-12 text-right shrink-0 pt-1">
+                            <p className="text-[10px] font-bold text-[#8B857A] uppercase leading-tight">
+                              {step.date.split(' ')[0]}<br/>
+                              {step.date.split(' ')[1].replace(',', '')}
+                            </p>
+                          </div>
+                          <div className="relative flex-1 pb-10 border-l border-[#EBE7DF] pl-10 last:border-0 last:pb-0">
+                            <div className={`absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full ${step.completed ? 'bg-[#2C2926]' : step.active ? 'bg-white border-2 border-[#2C2926]' : 'bg-[#EBE7DF]'}`} />
+                            <h3 className="text-lg font-bold uppercase tracking-tight mb-2 flex items-center gap-3">
+                              {step.status}
+                              {step.active && <span className="bg-[#2C2926] text-white text-[8px] px-2 py-0.5 tracking-widest">LIVE</span>}
+                            </h3>
+                            <p className="text-sm text-[#5C574F] font-medium max-w-lg leading-relaxed">
+                              {step.description}
+                            </p>
+                            {step.active && (
+                              <div className="mt-6 flex items-center gap-4">
+                                <div className="flex -space-x-2">
+                                  {[1,2,3].map(i => (
+                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-stone-200">
+                                      <img src={`https://i.pravatar.cc/100?u=${i+10}`} className="w-full h-full object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A]">
+                                  +2 specialists in your area
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Vertical Timeline */}
-                  <div className="relative space-y-12">
-                    <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-[#EBE7DF]" />
-
-                    {orderSteps.map((step, idx) => (
-                      <div key={idx} className="relative flex gap-8 group">
-                        <div
-                          className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-500 ${
-                            step.completed
-                              ? "bg-[#2C2926] text-white"
-                              : step.active
-                                ? "bg-white border-4 border-[#2C2926]"
-                                : "bg-[#EBE7DF] text-[#8B857A]"
-                          }`}
-                        >
-                          {step.completed ? (
-                            <CheckCircle2 size={16} />
-                          ) : step.active ? (
-                            <Truck size={14} className="text-[#2C2926]" />
-                          ) : (
-                            <Box size={14} />
-                          )}
+                  {/* Map Section */}
+                  <div className="relative h-[500px] bg-[#EBE7DF] shadow-sm border border-[#E5E0D8] overflow-hidden group">
+                    <img
+                      src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80"
+                      alt="Map"
+                      className={`w-full h-full object-cover transition-all duration-2000 ${mapLoaded ? 'opacity-40 grayscale-0 scale-105' : 'opacity-20 grayscale scale-100'}`}
+                    />
+                    
+                    {/* Animated Map Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none" />
+                    
+                    {/* Driver Icon Simulation */}
+                    <motion.div 
+                      initial={{ x: -100, y: 100 }}
+                      animate={{ x: 50, y: -50 }}
+                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                      className="absolute left-1/2 top-1/2 z-20"
+                    >
+                      <div className="relative">
+                        <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-[#2C2926] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap shadow-2xl">
+                          Driver is 8 mins away
                         </div>
+                        <div className="w-14 h-14 bg-[#2C2926] rounded-full flex items-center justify-center text-white shadow-[0_0_40px_rgba(44,41,38,0.4)] border-4 border-white animate-bounce-slow">
+                          <Truck size={24} />
+                        </div>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-4 h-4 bg-[#2C2926]/20 rounded-full blur-sm mt-1" />
+                      </div>
+                    </motion.div>
 
-                        <div className="flex-1 pb-2">
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                            <h3
-                              className={`text-xl font-bold uppercase tracking-tight ${step.active ? "text-[#2C2926]" : step.completed ? "text-[#2C2926]" : "text-[#8B857A]"}`}
-                            >
-                              {step.status}
-                            </h3>
-                            <div className="text-sm">
-                              <span className="font-bold text-[#2C2926]">
-                                {step.date}
-                              </span>
-                              <span className="mx-2 text-[#8B857A]">•</span>
-                              <span className="text-[#8B857A]">
-                                {step.time}
-                              </span>
+                    <div className="absolute bottom-10 left-10 right-10 bg-white/80 backdrop-blur-md p-8 border border-white/50 shadow-2xl">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                          <div className="w-12 h-12 bg-[#2C2926] flex items-center justify-center text-white">
+                            <MapPin size={24} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">
+                              Current Location
+                            </p>
+                            <p className="text-xl font-bold uppercase font-outfit">
+                              North District Hub, 12th St.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">
+                            Status
+                          </p>
+                          <p className="text-xl font-bold text-green-600 uppercase">
+                            Moving
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sidebar Summary */}
+                <aside className="space-y-12">
+                  <div className="bg-[#2C2926] text-white p-12 shadow-2xl relative overflow-hidden group">
+                    <Package className="absolute -right-10 -bottom-10 w-48 h-48 opacity-5 -rotate-12 group-hover:rotate-0 transition-transform duration-1000" />
+                    <h3 className="text-2xl font-bold uppercase mb-10 tracking-tight font-outfit">
+                      Order Details
+                    </h3>
+                    
+                    <div className="space-y-8 relative z-10">
+                      {orderData?.items ? (
+                        orderData.items.map((item: any, i: number) => (
+                          <div key={i} className="flex gap-6 group/item">
+                            <div className="w-20 h-20 bg-stone-800 shrink-0 overflow-hidden border border-stone-700">
+                              <img
+                                src={item.image}
+                                className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500"
+                              />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs font-bold uppercase tracking-widest leading-tight mb-2">
+                                {item.name}
+                              </p>
+                              <div className="flex justify-between items-center">
+                                <span className="text-[10px] text-stone-500 uppercase font-bold">Qty: {item.quantity}</span>
+                                <span className="text-xs font-bold">${(item.discount * item.quantity).toLocaleString()}</span>
+                              </div>
                             </div>
                           </div>
-                          {step.active && (
-                            <div className="mt-4 p-4 bg-[#F9F8F6] border-l-4 border-[#2C2926]">
-                              <p className="text-sm text-[#5C574F] leading-relaxed">
-                                Your package is currently at our regional
-                                distribution center in New Jersey and is being
-                                prepared for local delivery.
-                              </p>
-                            </div>
-                          )}
+                        ))
+                      ) : (
+                        <div className="py-10 text-center border-2 border-dashed border-stone-800">
+                          <p className="text-xs text-stone-500 uppercase tracking-widest">Loading Items...</p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                      )}
+                    </div>
 
-                {/* Map Mockup */}
-                <div className="relative h-96 bg-[#EBE7DF] overflow-hidden group">
-                  <img
-                    src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80"
-                    alt="Map"
-                    className="w-full h-full object-cover opacity-40 grayscale"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="relative">
-                      <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#2C2926] text-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
-                        Driver is 12 miles away
+                    <div className="mt-12 pt-10 border-t border-stone-800 relative z-10">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                          Purchase Date
+                        </span>
+                        <span className="text-xs font-bold">{orderData?.date || "April 25, 2026"}</span>
                       </div>
-                      <div className="w-12 h-12 bg-[#2C2926] rounded-full flex items-center justify-center text-white shadow-2xl animate-pulse">
-                        <Truck size={24} />
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
+                          Total Investment
+                        </span>
+                        <span className="text-3xl font-bold font-outfit">${orderData?.total?.toLocaleString() || "1,429.00"}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="absolute bottom-6 left-6 right-6 bg-white p-6 shadow-xl border border-[#E5E0D8]">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <MapPin className="text-[#8B857A]" />
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A]">
-                            Last Seen
-                          </p>
-                          <p className="text-sm font-bold">
-                            Trenton Logistics Hub, NJ
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight className="text-[#EBE7DF]" />
+
+                  <div className="bg-white border border-[#E5E0D8] p-12">
+                    <h3 className="text-xl font-bold uppercase mb-8 tracking-tight font-outfit">
+                      Concierge Support
+                    </h3>
+                    <div className="space-y-4">
+                      <button className="w-full h-16 border border-[#2C2926] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#2C2926] hover:text-white transition-all group">
+                        <Phone size={16} className="group-hover:rotate-12 transition-transform" /> 
+                        +1 (800) TIGER-LOG
+                      </button>
+                      <button className="w-full h-16 bg-[#F9F8F6] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#EBE7DF] transition-all">
+                        <Mail size={16} /> 
+                        Direct Messaging
+                      </button>
+                    </div>
+                    <div className="mt-10 flex items-start gap-4 p-6 bg-[#F9F8F6] border-l-4 border-[#2C2926]">
+                      <ShieldCheck className="shrink-0 w-5 h-5 text-[#2C2926]" />
+                      <p className="text-[10px] text-[#5C574F] font-bold uppercase tracking-widest leading-loose">
+                        Insured & Guaranteed by Havenly Shield™
+                      </p>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Sidebar: Summary & Contact */}
-              <div className="space-y-8">
-                <div className="bg-[#2C2926] text-white p-10">
-                  <h3 className="text-xl font-bold uppercase mb-6 tracking-tight">
-                    Order Summary
-                  </h3>
-                  <div className="space-y-6">
-                    <div className="flex gap-4">
-                      <div className="w-16 h-16 bg-stone-800 shrink-0 border border-stone-700">
-                        <img
-                          src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-tight">
-                          Oak Dining Chair
-                        </p>
-                        <p className="text-xs text-stone-500">
-                          Qty: 4 • Natural Finish
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="w-16 h-16 bg-stone-800 shrink-0 border border-stone-700">
-                        <img
-                          src="https://images.unsplash.com/photo-1581428982868-e410dd047a90?auto=format&fit=crop&q=80"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-tight">
-                          Minimalist Side Table
-                        </p>
-                        <p className="text-xs text-stone-500">
-                          Qty: 1 • Solid Walnut
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-8 pt-8 border-t border-stone-800 flex justify-between">
-                    <span className="text-xs font-bold uppercase tracking-widest text-stone-500">
-                      Total
-                    </span>
-                    <span className="font-bold">$1,429.00</span>
-                  </div>
-                </div>
-
-                <div className="bg-white border border-[#E5E0D8] p-10">
-                  <h3 className="text-xl font-bold uppercase mb-6 tracking-tight">
-                    Need Help?
-                  </h3>
-                  <p className="text-sm text-[#5C574F] mb-8 leading-relaxed">
-                    If you have questions about your delivery or need to
-                    reschedule, our logistics team is standing by.
-                  </p>
-                  <div className="space-y-4">
-                    <button className="w-full h-12 border border-[#E5E0D8] flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-widest hover:bg-[#F9F8F6] transition-colors">
-                      <Phone size={14} /> Call Support
-                    </button>
-                    <button className="w-full h-12 border border-[#E5E0D8] flex items-center justify-center gap-3 text-xs font-bold uppercase tracking-widest hover:bg-[#F9F8F6] transition-colors">
-                      <Mail size={14} /> Email Us
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-8 bg-[#EBE7DF] border-l-4 border-[#2C2926]">
-                  <Clock className="w-6 h-6 mb-4" />
-                  <h4 className="font-bold uppercase text-xs mb-2 tracking-widest">
-                    Delivery Hours
-                  </h4>
-                  <p className="text-xs text-[#5C574F] leading-relaxed">
-                    Mon - Sat: 8:00 AM - 8:00 PM
-                    <br />
-                    Sun: Closed
-                  </p>
-                </div>
+                </aside>
               </div>
             </div>
-          </div>
-        </section>
-      ) : (
-        <section className="py-24">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-              <div className="p-12 border border-[#E5E0D8] bg-white group hover:border-[#2C2926] transition-all cursor-pointer">
-                <Mail className="w-10 h-10 mb-8 text-[#8B857A] group-hover:text-[#2C2926] transition-colors" />
-                <h3 className="text-2xl font-bold uppercase mb-4 tracking-tight">
-                  Check Confirmation
-                </h3>
-                <p className="text-[#5C574F] leading-relaxed">
-                  We sent a tracking number to your email as soon as your order
-                  was shipped. Search "Tiger Balm Order" in your inbox.
-                </p>
-              </div>
-              <div className="p-12 border border-[#E5E0D8] bg-white group hover:border-[#2C2926] transition-all cursor-pointer">
-                <Clock className="w-10 h-10 mb-8 text-[#8B857A] group-hover:text-[#2C2926] transition-colors" />
-                <h3 className="text-2xl font-bold uppercase mb-4 tracking-tight">
-                  Processing Time
-                </h3>
-                <p className="text-[#5C574F] leading-relaxed">
-                  Most orders take 24-48 hours to process. If you haven't
-                  received a tracking number yet, your order is likely still in
-                  preparation.
-                </p>
+          </motion.section>
+        ) : (
+          <motion.section
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="py-32"
+          >
+            <div className="container mx-auto px-4">
+              <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+                {[
+                  {
+                    icon: <Mail className="w-8 h-8" />,
+                    title: "Check Inbox",
+                    desc: "Find your digital receipt and tracking credentials."
+                  },
+                  {
+                    icon: <Clock className="w-8 h-8" />,
+                    title: "24h Processing",
+                    desc: "Handcrafted orders require careful preparation before transit."
+                  },
+                  {
+                    icon: <Box className="w-8 h-8" />,
+                    title: "Global Reach",
+                    desc: "Our logistics network spans across prime global locations."
+                  }
+                ].map((item, i) => (
+                  <div key={i} className="p-12 border border-[#E5E0D8] bg-white group hover:border-[#2C2926] transition-all duration-500">
+                    <div className="mb-10 text-[#8B857A] group-hover:text-[#2C2926] transition-colors">
+                      {item.icon}
+                    </div>
+                    <h3 className="text-xl font-bold uppercase mb-6 tracking-tight font-outfit">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-[#5C574F] leading-relaxed font-medium">
+                      {item.desc}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        </section>
-      )}
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-slow {
+          animation: bounce-slow 3s infinite ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

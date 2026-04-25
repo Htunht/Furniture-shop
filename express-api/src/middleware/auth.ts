@@ -54,19 +54,21 @@ export async function adminGuard(
     });
 
     if (!session) {
-      return res.status(401).json({ message: "Unauthorized" });
+      console.warn("ADMIN GUARD: No active session found.");
+      return res.status(401).json({ message: "Unauthorized: Please sign in as an admin." });
     }
 
     if (session.user.role !== "admin") {
+      console.warn(`ADMIN GUARD: User ${session.user.email} attempted admin access without proper role.`);
       return res
         .status(403)
-        .json({ message: "Forbidden: Admin access required" });
+        .json({ message: "Forbidden: Architectural clearance required." });
     }
 
     (req as any).session = session;
     next();
   } catch (error) {
-    console.error("Auth error: ", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("ADMIN GUARD CRASH: ", error);
+    return res.status(500).json({ message: "Internal server authentication error." });
   }
 }

@@ -1,21 +1,22 @@
 import { useState, useEffect } from "react";
 import { authClient, useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { 
-  User, 
-  Mail, 
-  Lock, 
-  ShieldCheck, 
+import {
+  User,
+  Mail,
+  Lock,
+  ShieldCheck,
   Camera,
   ArrowRight,
   LogOut,
   Settings,
   CreditCard,
   ShoppingBag,
-  MapPin
+  MapPin,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -23,7 +24,7 @@ export default function AccountPage() {
   const { data: session, isPending } = useSession();
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
-  
+
   const [formData, setFormData] = useState({
     name: "",
     age: "",
@@ -65,7 +66,7 @@ export default function AccountPage() {
         age: parseInt(formData.age) || undefined,
         gender: formData.gender,
       });
-      
+
       if (error) throw error;
       toast.success("Profile updated successfully");
     } catch (err: any) {
@@ -82,7 +83,7 @@ export default function AccountPage() {
       const { error } = await authClient.changeEmail({
         newEmail: emailData.email,
       });
-      
+
       if (error) throw error;
       toast.success("Verification email sent to new address");
     } catch (err: any) {
@@ -97,7 +98,7 @@ export default function AccountPage() {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       return toast.error("Passwords do not match");
     }
-    
+
     setLoading(true);
     try {
       const { error } = await authClient.changePassword({
@@ -105,10 +106,14 @@ export default function AccountPage() {
         newPassword: passwordData.newPassword,
         revokeOtherSessions: true,
       });
-      
+
       if (error) throw error;
       toast.success("Password updated successfully");
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
     } catch (err: any) {
       toast.error(err.message || "Failed to update password");
     } finally {
@@ -127,10 +132,14 @@ export default function AccountPage() {
   if (!session) {
     return (
       <div className="flex h-screen flex-col items-center justify-center text-center px-4 bg-[#F9F8F6]">
-        <h1 className="text-4xl font-bold uppercase tracking-tighter mb-4 font-outfit">Access Denied.</h1>
-        <p className="text-[#8B857A] mb-8 font-medium">Please sign in to manage your architectural sanctuary.</p>
-        <Button 
-          onClick={() => window.location.href = "/login"}
+        <h1 className="text-4xl font-bold uppercase tracking-tighter mb-4 font-outfit">
+          Access Denied.
+        </h1>
+        <p className="text-[#8B857A] mb-8 font-medium">
+          Please sign in to manage your architectural sanctuary.
+        </p>
+        <Button
+          onClick={() => (window.location.href = "/login")}
           className="rounded-none h-14 px-12 bg-[#2C2926] uppercase font-bold tracking-widest text-xs"
         >
           Sign In
@@ -143,42 +152,63 @@ export default function AccountPage() {
     <div className="min-h-screen bg-[#F9F8F6] text-[#2C2926]">
       {/* Dynamic Header */}
       <section className="relative h-[40vh] flex items-end overflow-hidden bg-[#2C2926] text-white py-12">
-         <div className="absolute inset-0 opacity-20">
-            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80" className="w-full h-full object-cover" />
-         </div>
-         <div className="container mx-auto px-4 relative z-10">
-            <div className="flex flex-col md:flex-row items-end justify-between gap-8">
-              <div className="flex items-end gap-8">
-                <div className="relative group">
-                  <div className="w-32 h-32 md:w-48 md:h-48 border-8 border-[#F9F8F6] bg-stone-800 overflow-hidden shadow-2xl">
-                    {session.user.image ? (
-                      <img src={session.user.image} alt={session.user.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-6xl font-bold opacity-20">{session.user.name.charAt(0)}</div>
-                    )}
-                  </div>
-                  <button className="absolute -right-4 -bottom-4 bg-white text-[#2C2926] p-3 shadow-xl hover:scale-110 transition-transform">
-                    <Camera size={20} />
-                  </button>
+        <div className="absolute inset-0 opacity-20">
+          <img
+            src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80"
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col md:flex-row items-end justify-between gap-8">
+            <div className="flex items-end gap-8">
+              <div className="relative group">
+                <div className="w-32 h-32 md:w-48 md:h-48 border-8 border-[#F9F8F6] bg-stone-800 overflow-hidden shadow-2xl">
+                  {session.user.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-6xl font-bold opacity-20">
+                      {session.user.name.charAt(0)}
+                    </div>
+                  )}
                 </div>
-                <div className="mb-2">
-                  <p className="text-[10px] uppercase tracking-[0.5em] font-bold text-stone-400 mb-2">My Sanctuary</p>
-                  <h1 className="text-5xl md:text-8xl font-bold tracking-tighter uppercase font-outfit leading-none">{session.user.name}.</h1>
-                </div>
+                <button className="absolute -right-4 -bottom-4 bg-white text-[#2C2926] p-3 shadow-xl hover:scale-110 transition-transform">
+                  <Camera size={20} />
+                </button>
               </div>
-              <div className="hidden lg:flex items-center gap-12 mb-2 text-stone-400">
-                <div>
-                   <p className="text-2xl font-bold text-white font-outfit">2026</p>
-                   <p className="text-[10px] uppercase tracking-widest font-bold">Member Since</p>
-                </div>
-                <div className="w-px h-12 bg-white/10" />
-                <div>
-                   <p className="text-2xl font-bold text-white font-outfit">10</p>
-                   <p className="text-[10px] uppercase tracking-widest font-bold">Orders Placed</p>
-                </div>
+              <div className="mb-2">
+                <p className="text-[10px] uppercase tracking-[0.5em] font-bold text-stone-400 mb-2">
+                  My Sanctuary
+                </p>
+                <h1 className="text-5xl md:text-8xl font-bold tracking-tighter uppercase font-outfit leading-none">
+                  {session.user.name}.
+                </h1>
               </div>
             </div>
-         </div>
+            <div className="hidden lg:flex items-center gap-12 mb-2 text-stone-400">
+              <div>
+                <p className="text-2xl font-bold text-white font-outfit">
+                  2026
+                </p>
+                <p className="text-[10px] uppercase tracking-widest font-bold">
+                  Member Since
+                </p>
+              </div>
+              <div className="w-px h-12 bg-white/10" />
+              <div>
+                <p className="text-2xl font-bold text-white font-outfit">
+                  {localStorage.getItem("totalOrdersCount") || "10"}
+                </p>
+                <p className="text-[10px] uppercase tracking-widest font-bold">
+                  Orders Placed
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <div className="container mx-auto px-4 py-20">
@@ -187,18 +217,46 @@ export default function AccountPage() {
           <aside>
             <nav className="space-y-1">
               {[
-                { id: "profile", label: "Account Info", icon: <User size={16} /> },
-                { id: "security", label: "Security & Login", icon: <Lock size={16} /> },
-                { id: "orders", label: "Purchase History", icon: <ShoppingBag size={16} /> },
-                { id: "billing", label: "Billing & Cards", icon: <CreditCard size={16} /> },
-                { id: "addresses", label: "Shipping Books", icon: <MapPin size={16} /> },
+                {
+                  id: "profile",
+                  label: "Account Info",
+                  icon: <User size={16} />,
+                },
+                {
+                  id: "security",
+                  label: "Security & Login",
+                  icon: <Lock size={16} />,
+                },
+                {
+                  id: "orders",
+                  label: "Purchase History",
+                  icon: <ShoppingBag size={16} />,
+                },
+                {
+                  id: "billing",
+                  label: "Billing & Cards",
+                  icon: <CreditCard size={16} />,
+                },
+                {
+                  id: "addresses",
+                  label: "Shipping Books",
+                  icon: <MapPin size={16} />,
+                },
+                ...(session.user.role === "admin" ? [
+                  {
+                    id: "admin-nav",
+                    label: "Admin Console",
+                    icon: <ShieldCheck size={16} />,
+                    onClick: () => window.location.href = "/admin"
+                  }
+                ] : []),
               ].map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setActiveSection(item.id)}
+                  onClick={item.onClick || (() => setActiveSection(item.id))}
                   className={`w-full flex items-center gap-4 p-5 text-[10px] font-bold uppercase tracking-[0.3em] transition-all duration-300 border-l-2 ${
-                    activeSection === item.id 
-                      ? "bg-white text-[#2C2926] border-[#2C2926] shadow-sm" 
+                    activeSection === item.id
+                      ? "bg-white text-[#2C2926] border-[#2C2926] shadow-sm"
                       : "text-[#8B857A] border-transparent hover:text-[#2C2926] hover:bg-stone-50"
                   }`}
                 >
@@ -209,13 +267,13 @@ export default function AccountPage() {
             </nav>
 
             <div className="mt-20 pt-10 border-t border-[#E5E0D8]">
-               <button 
+              <button
                 onClick={() => authClient.signOut()}
                 className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-red-800 hover:text-red-600 transition-colors"
-               >
-                 <LogOut size={16} />
-                 Sign Out Session
-               </button>
+              >
+                <LogOut size={16} />
+                Sign Out Session
+              </button>
             </div>
           </aside>
 
@@ -226,37 +284,55 @@ export default function AccountPage() {
                 <div className="max-w-3xl">
                   <div className="flex items-center gap-3 mb-4 text-[#8B857A]">
                     <Settings size={18} />
-                    <span className="text-xs font-bold uppercase tracking-widest">Settings / Profile</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                      Settings / Profile
+                    </span>
                   </div>
-                  <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-8 leading-none">Your Identity.</h2>
+                  <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-8 leading-none">
+                    Your Identity.
+                  </h2>
                   <p className="text-lg text-[#5C574F] leading-relaxed mb-12 border-l-2 border-[#2C2926] pl-8">
-                    Manage your personal information and how we address you. These details help us curate a more personalized showroom experience.
+                    Manage your personal information and how we address you.
+                    These details help us curate a more personalized showroom
+                    experience.
                   </p>
 
                   <form onSubmit={handleUpdateProfile} className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
                       <div className="space-y-3">
-                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">Full Legal Name</Label>
-                        <Input 
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">
+                          Full Legal Name
+                        </Label>
+                        <Input
                           value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
                           className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-[#2C2926] px-0 h-14 text-xl font-bold transition-all"
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">Age Group</Label>
-                        <Input 
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">
+                          Age Group
+                        </Label>
+                        <Input
                           type="number"
                           value={formData.age}
-                          onChange={(e) => setFormData({...formData, age: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, age: e.target.value })
+                          }
                           className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-[#2C2926] px-0 h-14 text-xl font-bold transition-all"
                         />
                       </div>
                       <div className="space-y-3">
-                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">Identity / Gender</Label>
-                        <select 
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">
+                          Identity / Gender
+                        </Label>
+                        <select
                           value={formData.gender}
-                          onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, gender: e.target.value })
+                          }
                           className="w-full h-14 border-0 border-b-2 border-[#E5E0D8] bg-transparent rounded-none px-0 text-xl font-bold outline-none focus:border-[#2C2926] transition-all appearance-none"
                         >
                           <option value="">Choose...</option>
@@ -268,11 +344,17 @@ export default function AccountPage() {
                     </div>
 
                     <div className="pt-10">
-                      <Button 
+                      <Button
                         disabled={loading}
                         className="h-16 px-12 rounded-none bg-[#2C2926] text-white uppercase font-bold tracking-[0.2em] text-xs hover:bg-stone-700 shadow-2xl transition-all flex items-center gap-4"
                       >
-                        {loading ? <Spinner className="h-4 w-4" /> : <>Commit Changes <ArrowRight size={16} /></>}
+                        {loading ? (
+                          <Spinner className="h-4 w-4" />
+                        ) : (
+                          <>
+                            Commit Changes <ArrowRight size={16} />
+                          </>
+                        )}
                       </Button>
                     </div>
                   </form>
@@ -284,92 +366,265 @@ export default function AccountPage() {
               <div className="space-y-20 max-w-3xl">
                 {/* Email Section */}
                 <div>
-                   <div className="flex items-center gap-3 mb-4 text-[#8B857A]">
+                  <div className="flex items-center gap-3 mb-4 text-[#8B857A]">
                     <Mail size={18} />
-                    <span className="text-xs font-bold uppercase tracking-widest">Communication / Authentication</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                      Communication / Authentication
+                    </span>
                   </div>
-                  <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-10 leading-none">Access Email.</h2>
-                  
+                  <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-10 leading-none">
+                    Access Email.
+                  </h2>
+
                   <form onSubmit={handleChangeEmail} className="space-y-8">
                     <div className="space-y-3">
-                      <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">Current Address</Label>
-                      <Input 
+                      <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">
+                        Current Address
+                      </Label>
+                      <Input
                         type="email"
                         value={emailData.email}
-                        onChange={(e) => setEmailData({...emailData, email: e.target.value})}
+                        onChange={(e) =>
+                          setEmailData({ ...emailData, email: e.target.value })
+                        }
                         className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-[#2C2926] px-0 h-14 text-xl font-bold transition-all"
                       />
                     </div>
-                    <Button 
+                    <Button
                       disabled={loading}
                       variant="outline"
                       className="h-14 px-10 rounded-none border-[#2C2926] uppercase font-bold tracking-widest text-[10px]"
                     >
-                      {loading ? <Spinner className="h-4 w-4" /> : "Verify & Update Email"}
+                      {loading ? (
+                        <Spinner className="h-4 w-4" />
+                      ) : (
+                        "Verify & Update Email"
+                      )}
                     </Button>
                   </form>
                 </div>
 
                 {/* Password Section */}
                 <div>
-                   <div className="flex items-center gap-3 mb-4 text-[#8B857A]">
+                  <div className="flex items-center gap-3 mb-4 text-[#8B857A]">
                     <ShieldCheck size={18} />
-                    <span className="text-xs font-bold uppercase tracking-widest">Digital Vault / Encryption</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                      Digital Vault / Encryption
+                    </span>
                   </div>
-                  <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-10 leading-none">Security Key.</h2>
-                  
+                  <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-10 leading-none">
+                    Security Key
+                  </h2>
+
                   <form onSubmit={handleChangePassword} className="space-y-12">
                     <div className="space-y-8">
                       <div className="space-y-3">
-                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">Current Password</Label>
-                        <Input 
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">
+                          Current Password
+                        </Label>
+                        <Input
                           type="password"
                           value={passwordData.currentPassword}
-                          onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                          onChange={(e) =>
+                            setPasswordData({
+                              ...passwordData,
+                              currentPassword: e.target.value,
+                            })
+                          }
                           className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-[#2C2926] px-0 h-14 text-xl font-bold transition-all"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
                         <div className="space-y-3">
-                          <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">New Password</Label>
-                          <Input 
+                          <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">
+                            New Password
+                          </Label>
+                          <Input
                             type="password"
                             value={passwordData.newPassword}
-                            onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                newPassword: e.target.value,
+                              })
+                            }
                             className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-[#2C2926] px-0 h-14 text-xl font-bold transition-all"
                           />
                         </div>
                         <div className="space-y-3">
-                          <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">Confirm Key</Label>
-                          <Input 
+                          <Label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8B857A]">
+                            Confirm Key
+                          </Label>
+                          <Input
                             type="password"
                             value={passwordData.confirmPassword}
-                            onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                            onChange={(e) =>
+                              setPasswordData({
+                                ...passwordData,
+                                confirmPassword: e.target.value,
+                              })
+                            }
                             className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-[#2C2926] px-0 h-14 text-xl font-bold transition-all"
                           />
                         </div>
                       </div>
                     </div>
-                    <Button 
+                    <Button
                       disabled={loading}
                       className="h-16 px-12 rounded-none bg-[#2C2926] text-white uppercase font-bold tracking-[0.2em] text-xs shadow-xl"
                     >
-                      {loading ? <Spinner className="h-4 w-4" /> : "Re-encrypt Password"}
+                      {loading ? (
+                        <Spinner className="h-4 w-4" />
+                      ) : (
+                        "Re-encrypt Password"
+                      )}
                     </Button>
                   </form>
                 </div>
               </div>
             )}
 
-            {activeSection !== "profile" && activeSection !== "security" && (
-               <div className="flex flex-col items-center justify-center py-32 text-center border-2 border-dashed border-[#E5E0D8]">
-                 <div className="h-20 w-20 bg-white rounded-full flex items-center justify-center mb-8 shadow-sm">
-                   <Settings size={32} className="text-[#8B857A] animate-spin-slow" />
-                 </div>
-                 <h3 className="text-2xl font-bold uppercase tracking-tight mb-4">Module Under Construction</h3>
-                 <p className="text-[#8B857A] max-w-sm">We are currently architecting this portion of your sanctuary experience. Please check back shortly.</p>
-               </div>
+            {activeSection === "orders" && (
+              <div className="space-y-16">
+                <div className="max-w-4xl">
+                  <div className="flex items-center gap-3 mb-4 text-[#8B857A]">
+                    <ShoppingBag size={18} />
+                    <span className="text-xs font-bold uppercase tracking-widest">
+                      Showroom / History
+                    </span>
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-8 leading-none">
+                    Your Acquisitions
+                  </h2>
+                  <p className="text-lg text-[#5C574F] leading-relaxed mb-12 border-l-2 border-[#2C2926] pl-8">
+                    A retrospective of your architectural selections. Every
+                    piece here represents a step towards your ideal sanctuary.
+                  </p>
+
+                  <div className="space-y-8">
+                    {(() => {
+                      const allOrders = JSON.parse(
+                        localStorage.getItem("allOrders") || "[]",
+                      );
+                      if (allOrders.length === 0) {
+                        return (
+                          <div className="py-20 text-center border-2 border-dashed border-[#E5E0D8] bg-white">
+                            <p className="text-[#8B857A] uppercase font-bold tracking-widest text-[10px]">
+                              No orders found in your archives.
+                            </p>
+                          </div>
+                        );
+                      }
+                      return allOrders.map((order: any) => (
+                        <div
+                          key={order.id}
+                          className="bg-white border border-[#E5E0D8] p-8 md:p-10 shadow-sm hover:shadow-xl transition-all duration-500 group"
+                        >
+                          <div className="flex flex-col md:flex-row justify-between gap-8 mb-8 pb-8 border-b border-[#F9F8F6]">
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A]">
+                                Reference ID
+                              </p>
+                              <h3 className="text-xl font-bold font-outfit uppercase tracking-tighter">
+                                #{order.id}
+                              </h3>
+                            </div>
+                            <div className="flex gap-10 md:text-right">
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">
+                                  Date Acquired
+                                </p>
+                                <p className="font-bold text-sm">
+                                  {order.date}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">
+                                  Status
+                                </p>
+                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-[#F9F8F6] text-[10px] font-bold uppercase tracking-widest text-[#2C2926]">
+                                  <span className="w-1.5 h-1.5 bg-[#2C2926] rounded-full animate-pulse" />
+                                  {order.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-6 mb-10">
+                            {order.items.map((item: any, i: number) => (
+                              <div key={i} className="flex items-center gap-6">
+                                <div className="w-14 h-14 bg-[#F9F8F6] shrink-0 overflow-hidden">
+                                  <img
+                                    src={item.image}
+                                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#2C2926]">
+                                    {item.name}
+                                  </p>
+                                  <p className="text-[10px] text-[#8B857A] font-medium">
+                                    Qty: {item.quantity} • $
+                                    {item.discount.toLocaleString()}
+                                  </p>
+                                </div>
+                                <p className="text-xs font-bold">
+                                  $
+                                  {(
+                                    item.discount * item.quantity
+                                  ).toLocaleString()}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-8 border-t border-[#F9F8F6]">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A]">
+                                Total Investment:
+                              </span>
+                              <span className="text-xl font-bold font-outfit">
+                                ${order.total.toLocaleString()}
+                              </span>
+                            </div>
+                            <Link
+                              to={`/track-order?id=${order.id}`}
+                              className="inline-flex items-center gap-3 h-12 px-8 bg-[#2C2926] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all group/btn"
+                            >
+                              Live Tracking{" "}
+                              <ArrowRight
+                                size={14}
+                                className="group-hover/btn:translate-x-1 transition-transform"
+                              />
+                            </Link>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              </div>
             )}
+
+            {activeSection !== "profile" &&
+              activeSection !== "security" &&
+              activeSection !== "orders" && (
+                <div className="flex flex-col items-center justify-center py-32 text-center border-2 border-dashed border-[#E5E0D8]">
+                  <div className="h-20 w-20 bg-white rounded-full flex items-center justify-center mb-8 shadow-sm">
+                    <Settings
+                      size={32}
+                      className="text-[#8B857A] animate-spin-slow"
+                    />
+                  </div>
+                  <h3 className="text-2xl font-bold uppercase tracking-tight mb-4">
+                    Module Under Construction
+                  </h3>
+                  <p className="text-[#8B857A] max-w-sm">
+                    We are currently architecting this portion of your sanctuary
+                    experience. Please check back shortly.
+                  </p>
+                </div>
+              )}
           </main>
         </div>
       </div>

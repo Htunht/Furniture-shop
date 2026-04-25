@@ -5,14 +5,24 @@ import { auth } from "./lib/auth";
 import { authGuard } from "./middleware/auth";
 import router from "./routes";
 import rateLimit from "express-rate-limit";
+import fs from "fs";
+import path from "path";
 
 const app = express();
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+app.use("/uploads", express.static(uploadsDir));
 
 // Configure CORS middleware
 app.use(
   cors({
     origin: "http://localhost:5173", // Replace with your frontend's origin
-    methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Specify allowed HTTP methods
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   }),
 );
