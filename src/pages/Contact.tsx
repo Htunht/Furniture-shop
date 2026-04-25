@@ -11,7 +11,7 @@ export default function ContactPage() {
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm md:text-base tracking-[0.3em] uppercase mb-4 font-bold text-[#8B857A]">Get in Touch</p>
           <h1 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-6 font-outfit">
-            Contact Us.
+            Contact Us
           </h1>
           <p className="text-lg md:text-xl text-[#5C574F] max-w-2xl mx-auto font-light leading-relaxed">
             Whether you have a question about our collections, need help with an order, or just want to say hello, we'd love to hear from you.

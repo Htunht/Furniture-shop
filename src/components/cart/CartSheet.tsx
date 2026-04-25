@@ -1,10 +1,13 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, ShoppingBag, Plus, Minus, Trash2 } from "lucide-react";
+import { Link } from "react-router";
 import { useCartStore } from "@/store/useCartStore";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/lib/auth-client";
 
 export function CartSheet() {
+  const { data: session } = useSession();
   const { items, updateQuantity, removeItem, getTotalPrice } = useCartStore();
   const totalItems = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
@@ -44,9 +47,11 @@ export function CartSheet() {
                 home.
               </p>
               <Dialog.Close asChild>
-                <Button className="mt-8 rounded-full px-8">
-                  Start Shopping
-                </Button>
+                <Link to="/shop">
+                  <Button className="mt-8 rounded-full px-8">
+                    Start Shopping
+                  </Button>
+                </Link>
               </Dialog.Close>
             </div>
           ) : (
@@ -127,9 +132,26 @@ export function CartSheet() {
                 <p className="text-xs text-muted-foreground">
                   Shipping and taxes calculated at checkout.
                 </p>
-                <Button className="w-full h-14 rounded-full text-base font-bold shadow-lg shadow-primary/20">
-                  Checkout Now
-                </Button>
+                {session ? (
+                  <Dialog.Close asChild>
+                    <Link to="/checkout" className="w-full">
+                      <Button className="w-full h-14 rounded-full text-base font-bold shadow-lg shadow-primary/20">
+                        Order Now
+                      </Button>
+                    </Link>
+                  </Dialog.Close>
+                ) : (
+                  <div className="space-y-3">
+                     <p className="text-[10px] text-center text-red-500 font-bold uppercase tracking-widest">Login required to place order</p>
+                     <Dialog.Close asChild>
+                      <Link to="/login" className="w-full">
+                        <Button variant="outline" className="w-full h-14 rounded-full text-base font-bold border-2">
+                          Sign In to Order
+                        </Button>
+                      </Link>
+                    </Dialog.Close>
+                  </div>
+                )}
               </div>
             </>
           )}

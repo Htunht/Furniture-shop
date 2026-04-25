@@ -40,10 +40,10 @@ export function Navbar() {
 
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/20">
-              H
+              <Link to="/">H</Link>
             </div>
             <span className="text-xl font-bold tracking-tight hidden sm:block font-outfit">
-              Havenly
+              <Link to="/">Havenly</Link>
             </span>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function Navbar() {
             Home
           </Link>
           <Link
-            to="#"
+            to="/shop"
             className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
           >
             Shop
@@ -110,21 +110,30 @@ export function Navbar() {
 
           {session ? (
             <div className="flex items-center gap-2 border-l pl-2 ml-2">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-xs font-medium leading-none">
-                  {session.user.name}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  {session.user.role || "User"}
-                </span>
-              </div>
+              <Link to="/account" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-xs font-medium leading-none">
+                    {session.user.name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {session.user.role || "User"}
+                  </span>
+                </div>
+                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
+                  {session.user.image ? (
+                    <img src={session.user.image} alt={session.user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[10px] font-bold">{session.user.name.charAt(0)}</span>
+                  )}
+                </div>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => signOut()}
-                className="text-muted-foreground hover:text-destructive transition-colors"
+                className="text-muted-foreground hover:text-destructive transition-colors ml-1"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           ) : (

@@ -1,13 +1,13 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { X, Home, ShoppingBag, Info, Phone, ArrowRight } from "lucide-react";
-import { NavLink } from "react-router"; // Use NavLink instead of Link
+import { NavLink,Link } from "react-router"; // Use NavLink instead of Link
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 export function MobileNav() {
   const navLinks = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Shop", href: "#", icon: ShoppingBag },
+    { name: "Shop", href: "/shop", icon: ShoppingBag },
     { name: "About", href: "/about", icon: Info },
     { name: "Contact", href: "/contact", icon: Phone },
   ];
@@ -82,15 +82,17 @@ export function MobileNav() {
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">
                 Support
               </p>
-              <p className="text-sm font-medium">
+              <p className="text-sm font-medium" >
                 Have a question? Our team is here to help you 24/7.
               </p>
               <Button variant="link" className="px-0 h-auto mt-2 text-primary">
-                Get in Touch
+                <Link to={"/contact"}>
+                  Get in Touch
+                </Link>
               </Button>
             </div>
             <p className="text-center text-[10px] text-muted-foreground font-medium">
-              &copy; 2026 Technortal Furniture Store.
+              &copy; 2026 Havenly Furniture Store.
             </p>
           </div>
         </div>
@@ -98,3 +100,4 @@ export function MobileNav() {
     </Dialog.Portal>
   );
 }
+ 

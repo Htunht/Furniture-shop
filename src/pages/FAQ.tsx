@@ -92,7 +92,7 @@ export default function FAQPage() {
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm md:text-base tracking-[0.3em] uppercase mb-4 font-bold text-[#8B857A]">Support Center</p>
           <h1 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-8 font-outfit">
-            FAQ.
+            FAQ
           </h1>
           <div className="max-w-xl mx-auto relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#8B857A]" />

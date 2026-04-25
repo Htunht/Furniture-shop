@@ -16,7 +16,7 @@ export default function AboutPage() {
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto text-white">
           <p className="text-sm md:text-base tracking-[0.3em] uppercase mb-4 font-bold text-white/90">Est. 1998</p>
           <h1 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-6 font-outfit">
-            Crafting Comfort.
+            Crafting Comfort
           </h1>
           <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto font-light leading-relaxed">
             For over two decades, we've been dedicated to designing furniture that brings warmth, elegance, and enduring quality into your home.

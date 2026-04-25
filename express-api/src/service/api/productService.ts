@@ -4,8 +4,9 @@ export const getPaginatedProducts = async (
   limit: number,
   cursor?: string,
   userId?: string,
+  category?: string,
 ) => {
-  return await productRepository.getPaginatedProducts(limit, cursor, userId);
+  return await productRepository.getPaginatedProducts(limit, cursor, userId, category);
 };
 
 export const toggleFavorite = async (userId: string, productId: string) => {

@@ -14,10 +14,12 @@ export const getPaginatedProducts = async (
   limit: number,
   cursor?: string,
   userId?: string,
+  category?: string,
 ) => {
   const query: any = {
     take: limit,
     orderBy: { id: "asc" },
+    where: category ? { category: { name: category } } : {},
     include: {
       category: true,
       type: true,

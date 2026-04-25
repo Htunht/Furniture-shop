@@ -18,7 +18,7 @@ export function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 border-b border-[#E5E0D8] pb-16">
           <div className="flex flex-col gap-6">
             <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tight font-outfit">
-              Havenly.
+              Havenly
             </h2>
             <p className="text-[#5C574F] max-w-md text-sm leading-relaxed">
               Elevate your living space with our thoughtfully curated collection
@@ -81,31 +81,31 @@ export function Footer() {
               Shop
             </h4>
             <Link
-              to="#"
+              to="/shop/living-room"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Living Room
             </Link>
             <Link
-              to="#"
+              to="/shop/bedroom"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Bedroom
             </Link>
             <Link
-              to="#"
+              to="/shop/dining"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Dining
             </Link>
             <Link
-              to="#"
+              to="/shop/workspace"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Workspace
             </Link>
             <Link
-              to="#"
+              to="/shop/accessories"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Accessories
@@ -123,19 +123,19 @@ export function Footer() {
               Our Story
             </Link>
             <Link
-              to="#"
+              to="/careers"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Careers
             </Link>
             <Link
-              to="#"
+              to="/press"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Press
             </Link>
             <Link
-              to="#"
+              to="/sustainability"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Sustainability
@@ -153,13 +153,13 @@ export function Footer() {
               FAQ
             </Link>
             <Link
-              to="#"
+              to="/shipping-returns"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Shipping & Returns
             </Link>
             <Link
-              to="#"
+              to="/care-guide"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Care Guide
@@ -171,7 +171,7 @@ export function Footer() {
               Contact Us
             </Link>
             <Link
-              to="#"
+              to="/track-order"
               className="text-[#5C574F] hover:text-[#2C2926] text-sm transition-colors"
             >
               Track Order
@@ -208,10 +208,10 @@ export function Footer() {
             reserved.
           </p>
           <div className="flex items-center gap-6">
-            <Link to="#" className="hover:text-[#2C2926] transition-colors">
+            <Link to="/privacy-policy" className="hover:text-[#2C2926] transition-colors">
               Privacy Policy
             </Link>
-            <Link to="#" className="hover:text-[#2C2926] transition-colors">
+            <Link to="/terms-of-service" className="hover:text-[#2C2926] transition-colors">
               Terms of Service
             </Link>
           </div>

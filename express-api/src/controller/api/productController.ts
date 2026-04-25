@@ -6,12 +6,14 @@ export const getProducts = async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
     const cursor = req.query.cursor as string | undefined;
+    const category = req.query.category as string | undefined;
     const userId = (req as any).session?.user?.id;
 
     const result = await productService.getPaginatedProducts(
       limit,
       cursor,
       userId,
+      category,
     );
     res.json({
       status: "success",
