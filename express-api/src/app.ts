@@ -1,8 +1,7 @@
 import express from "express";
-import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
+import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import { auth } from "./lib/auth";
-import { authGuard } from "./middleware/auth";
 import router from "./routes";
 import rateLimit from "express-rate-limit";
 import fs from "fs";
@@ -38,8 +37,6 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.all("/api/auth/*splat", toNodeHandler(auth)); // api/auth ထဲက အကုန် တာဝန်ယူမယ်
-
-app.use("/uploads", express.static("public/uploads"));
 
 app.use(express.json());
 

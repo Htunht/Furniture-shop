@@ -84,7 +84,7 @@ export function Hero() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A] mb-1">
                 Our Showroom
               </p>
-              <p className="text-sm font-bold text-[#2C2926]">SoHo, New York</p>
+              <p className="text-sm font-bold text-[#2C2926]">SanChaung, Yangon</p>
             </div>
           </div>
 

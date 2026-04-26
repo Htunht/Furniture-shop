@@ -8,5 +8,6 @@ const router = express.Router();
 router.get("/products", optionalAuth, productController.getProducts);
 router.post("/products/favorite", authGuard, productController.toggleFavorite);
 router.post("/order/confirm", orderController.sendOrderConfirmation);
+router.get("/order/track/:orderNumber", orderController.trackOrder);
 
 export default router;

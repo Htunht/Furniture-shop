@@ -61,23 +61,90 @@ export default function TrackOrderPage() {
   const [showResult, setShowResult] = useState(!!searchParams.get("id"));
   const [orderData, setOrderData] = useState<any>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (showResult) {
-      const savedOrder = localStorage.getItem("lastOrder");
-      if (savedOrder) {
-        const parsed = JSON.parse(savedOrder);
-        if (parsed.id === orderId || !orderId) {
-          setOrderData(parsed);
-          if (!orderId) setOrderId(parsed.id);
+    let intervalId: any;
+
+    const fetchOrder = async () => {
+      if (!orderId) return;
+      try {
+        const res = await fetch(`http://localhost:8080/api/v1/order/track/${orderId.replace("#", "")}`);
+        if (res.ok) {
+          const data = await res.json();
+          setOrderData({
+            id: data.orderNumber,
+            date: new Date(data.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' }),
+            total: data.totalAmount,
+            status: data.status,
+            customerName: data.customerName,
+            address: data.address,
+            updatedAt: data.updatedAt,
+            items: data.items.map((i: any) => ({
+              name: i.name,
+              image: i.product?.imageUrl ? (i.product.imageUrl.startsWith("http") ? i.product.imageUrl : `http://localhost:8080${i.product.imageUrl.startsWith("/") ? "" : "/"}${i.product.imageUrl}`) : "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80",
+              quantity: i.quantity,
+              discount: i.price,
+            }))
+          });
+          setError("");
+        } else {
+          setError("Order not found");
         }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to fetch order status");
       }
+      setIsLoading(false);
+    };
+
+    if (showResult && orderId) {
+      setIsLoading(true);
+      fetchOrder();
+      // Poll every 3 seconds for real-time updates
+      intervalId = setInterval(fetchOrder, 3000);
     }
     
     // Simulate map loading
     const timer = setTimeout(() => setMapLoaded(true), 1000);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [showResult, orderId]);
+
+  const getDynamicSteps = (currentStatus: string, createdAt: string, updatedAt: string) => {
+    const statuses = ['PENDING', 'PLACED', 'PROCESSING', 'SHIPPED', 'TRANSIT', 'DELIVERED'];
+    // Normalize status, treat PENDING as PLACED or index 0
+    let currentIndex = statuses.indexOf(currentStatus);
+    if (currentIndex === -1) currentIndex = statuses.indexOf('CANCELLED');
+    if (currentIndex === 0) currentIndex = 1; // Map PENDING to PLACED visually
+    
+    // Standard UI stages
+    const uiStages = [
+      { id: 'PLACED', title: 'Order Placed', desc: 'Your order has been received and is being prepared.' },
+      { id: 'PROCESSING', title: 'Processing', desc: 'Our craftsmen are selecting and inspecting your pieces.' },
+      { id: 'SHIPPED', title: 'Shipped', desc: 'Package has been handed over to Tiger Express.' },
+      { id: 'TRANSIT', title: 'In Transit', desc: 'Your package is currently moving towards the local distribution center.' },
+      { id: 'DELIVERED', title: 'Delivered', desc: 'Signature will be required upon delivery.' }
+    ];
+
+    return uiStages.map((stage, idx) => {
+      const stageIndex = statuses.indexOf(stage.id);
+      const isCompleted = currentIndex >= stageIndex;
+      const isActive = currentIndex === stageIndex && currentStatus !== 'DELIVERED' && currentStatus !== 'CANCELLED';
+      
+      return {
+        status: stage.title,
+        date: isCompleted || isActive ? new Date(idx === 0 ? createdAt : updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "Pending",
+        time: isCompleted || isActive ? new Date(idx === 0 ? createdAt : updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "Updating",
+        completed: isCompleted && !isActive,
+        active: isActive,
+        description: stage.desc
+      };
+    });
+  };
 
   const handleTrack = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,10 +188,11 @@ export default function TrackOrderPage() {
               </div>
               <Button
                 type="submit"
-                className="h-20 px-12 bg-[#2C2926] text-white hover:bg-stone-800 rounded-none uppercase font-bold tracking-[0.2em] text-xs transition-all flex items-center gap-3 group"
+                disabled={isLoading}
+                className="h-20 px-12 bg-[#2C2926] text-white hover:bg-stone-800 rounded-none uppercase font-bold tracking-[0.2em] text-xs transition-all flex items-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Track Status
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                {isLoading ? "Locating..." : "Track Status"}
+                {!isLoading && <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />}
               </Button>
             </form>
           </motion.div>
@@ -157,6 +225,7 @@ export default function TrackOrderPage() {
                         <h2 className="text-4xl font-bold font-outfit uppercase tracking-tighter">
                           #{orderId}
                         </h2>
+                        {error && <p className="text-red-500 text-sm mt-2 font-bold">{error}</p>}
                       </div>
                       <div className="grid grid-cols-2 gap-8 text-right md:text-left">
                         <div>
@@ -179,32 +248,41 @@ export default function TrackOrderPage() {
                       <div className="absolute top-1/2 left-0 w-full h-px bg-[#EBE7DF] -translate-y-1/2" />
                       <div 
                         className="absolute top-1/2 left-0 h-1 bg-[#2C2926] -translate-y-1/2 transition-all duration-1000" 
-                        style={{ width: '75%' }} 
+                        style={{ width: `${orderData ? Math.min(100, Math.max(0, (['PENDING', 'PLACED', 'PROCESSING', 'SHIPPED', 'TRANSIT', 'DELIVERED'].indexOf(orderData.status === 'PENDING' ? 'PLACED' : orderData.status) - 1) * 25)) : 0}%` }} 
                       />
                       <div className="relative flex justify-between">
-                        {['Placed', 'Processing', 'Shipped', 'Transit', 'Delivered'].map((label, i) => (
+                        {['Placed', 'Processing', 'Shipped', 'Transit', 'Delivered'].map((label, i) => {
+                          const currentStatusIndex = orderData ? ['PENDING', 'PLACED', 'PROCESSING', 'SHIPPED', 'TRANSIT', 'DELIVERED'].indexOf(orderData.status === 'PENDING' ? 'PLACED' : orderData.status) - 1 : -1;
+                          const isCompleted = currentStatusIndex > i;
+                          const isActive = currentStatusIndex === i;
+                          
+                          return (
                           <div key={label} className="flex flex-col items-center gap-4">
                             <div className={`w-4 h-4 rounded-full border-4 ${
-                              i < 3 ? 'bg-[#2C2926] border-[#2C2926]' : 
-                              i === 3 ? 'bg-white border-[#2C2926] animate-pulse' : 
+                              isCompleted ? 'bg-[#2C2926] border-[#2C2926]' : 
+                              isActive ? 'bg-white border-[#2C2926] animate-pulse' : 
                               'bg-white border-[#EBE7DF]'
                             }`} />
-                            <span className={`text-[10px] font-bold uppercase tracking-widest ${i <= 3 ? 'text-[#2C2926]' : 'text-[#8B857A]'}`}>
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${isCompleted || isActive ? 'text-[#2C2926]' : 'text-[#8B857A]'}`}>
                               {label}
                             </span>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     </div>
 
                     {/* Details List */}
                     <div className="space-y-10">
-                      {defaultOrderSteps.map((step, idx) => (
+                      {(orderData ? getDynamicSteps(orderData.status, orderData.date, orderData.updatedAt) : defaultOrderSteps).map((step, idx) => (
                         <div key={idx} className={`flex gap-8 ${!step.completed && !step.active ? 'opacity-40' : ''}`}>
-                          <div className="w-12 text-right shrink-0 pt-1">
+                          <div className="w-16 text-right shrink-0 pt-1">
                             <p className="text-[10px] font-bold text-[#8B857A] uppercase leading-tight">
-                              {step.date.split(' ')[0]}<br/>
-                              {step.date.split(' ')[1].replace(',', '')}
+                              {step.date !== "Pending" ? (
+                                <>
+                                  {step.date.split(' ').slice(0, 2).join(' ').replace(',', '')}<br/>
+                                  {step.time}
+                                </>
+                              ) : "Pending"}
                             </p>
                           </div>
                           <div className="relative flex-1 pb-10 border-l border-[#EBE7DF] pl-10 last:border-0 last:pb-0">
@@ -216,7 +294,7 @@ export default function TrackOrderPage() {
                             <p className="text-sm text-[#5C574F] font-medium max-w-lg leading-relaxed">
                               {step.description}
                             </p>
-                            {step.active && (
+                            {step.active && step.status === "In Transit" && (
                               <div className="mt-6 flex items-center gap-4">
                                 <div className="flex -space-x-2">
                                   {[1,2,3].map(i => (
@@ -285,7 +363,7 @@ export default function TrackOrderPage() {
                             Status
                           </p>
                           <p className="text-xl font-bold text-green-600 uppercase">
-                            Moving
+                            {orderData?.status || "Loading..."}
                           </p>
                         </div>
                       </div>

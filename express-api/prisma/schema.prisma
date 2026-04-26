@@ -163,8 +163,10 @@ model Favorite {
 
 enum OrderStatus {
   PENDING
+  PLACED
   PROCESSING
   SHIPPED
+  TRANSIT
   DELIVERED
   CANCELLED
 }
@@ -179,8 +181,8 @@ enum PaymentStatus {
 model Order {
   id            String      @id @default(cuid())
   orderNumber   String      @unique
-  userId        String
-  user          User        @relation(fields: [userId], references: [id])
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id])
   totalAmount   Decimal     @db.Decimal(10, 2)
   status        OrderStatus @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)

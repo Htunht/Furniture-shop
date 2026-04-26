@@ -122,3 +122,131 @@ export function getOrderConfirmationEmailHtml(
     </html>
   `.trim();
 }
+
+export function getTransitEmailHtml(
+  customerName: string,
+  orderNumber: string,
+): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Order in Transit</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F9F8F6; color: #2C2926;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F9F8F6; padding: 40px 0;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #E5E0D8; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+              <!-- Header -->
+              <tr>
+                <td style="padding: 60px 40px 40px 40px; text-align: center;">
+                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Tiger Balm • Logistics</div>
+                  <h1 style="margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.1;">Order in Transit</h1>
+                  <p style="margin: 20px 0 0 0; color: #8B857A; font-size: 14px; font-weight: 500; line-height: 1.6;">
+                    Hello ${customerName},<br>
+                    Your architectural pieces from order <strong>#${orderNumber}</strong> have been handed over to our premium courier partners and are now officially en route to your sanctuary.
+                  </p>
+                </td>
+              </tr>
+              
+              <!-- Logistics Accent -->
+              <tr>
+                <td style="padding: 0 40px 40px 40px;">
+                  <div style="background-color: #F9F8F6; border: 1px solid #E5E0D8; padding: 40px; text-align: center;">
+                    <p style="margin: 0; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; color: #2C2926;">White-Glove Delivery Active</p>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- CTA -->
+              <tr>
+                <td style="padding: 0 40px 60px 40px; text-align: center;">
+                  <a href="http://localhost:5173/track-order?id=${orderNumber}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Track Live Movement</a>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 40px; background-color: #F4F1ED; text-align: center;">
+                  <p style="margin: 0; font-size: 11px; line-height: 1.8; color: #8B857A; font-weight: 500;">
+                    Questions regarding your architectural selection? Reply to this email.<br>
+                    © 2026 Tiger Balm Furniture • Havenly Design Studio. All rights reserved.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `.trim();
+}
+
+export function getDeliveredEmailHtml(
+  customerName: string,
+  orderNumber: string,
+): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Order Delivered</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F9F8F6; color: #2C2926;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F9F8F6; padding: 40px 0;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border: 1px solid #E5E0D8; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+              <!-- Header -->
+              <tr>
+                <td style="padding: 60px 40px 40px 40px; text-align: center;">
+                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Tiger Balm • Havenly</div>
+                  <h1 style="margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.1;">Welcome Home.</h1>
+                  <p style="margin: 20px 0 0 0; color: #8B857A; font-size: 14px; font-weight: 500; line-height: 1.6;">
+                    Hello ${customerName},<br>
+                    Your sanctuary pieces from order <strong>#${orderNumber}</strong> have safely arrived and been delivered. We hope they bring elevated comfort and aesthetic balance to your space.
+                  </p>
+                </td>
+              </tr>
+              
+              <!-- Quote Accent -->
+              <tr>
+                <td style="padding: 0 40px 40px 40px;">
+                  <div style="border-top: 1px solid #E5E0D8; border-bottom: 1px solid #E5E0D8; padding: 40px 0; text-align: center;">
+                    <p style="margin: 0; font-size: 18px; font-weight: 300; font-style: italic; color: #2C2926; line-height: 1.5;">
+                      "Design is not just what it looks like and feels like. Design is how it works."
+                    </p>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- CTA -->
+              <tr>
+                <td style="padding: 0 40px 60px 40px; text-align: center;">
+                  <a href="http://localhost:5173" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Explore More Collections</a>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 40px; background-color: #F4F1ED; text-align: center;">
+                  <p style="margin: 0; font-size: 11px; line-height: 1.8; color: #8B857A; font-weight: 500;">
+                    We'd love to see how you style it. Tag us on Instagram @TigerBalmFurniture.<br>
+                    © 2026 Tiger Balm Furniture • Havenly Design Studio. All rights reserved.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `.trim();
+}

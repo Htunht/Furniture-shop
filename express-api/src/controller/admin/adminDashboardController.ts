@@ -2,6 +2,8 @@ import fs from "fs";
 import path from "path";
 import { Request, Response } from "express";
 import prisma from "../../lib/prisma";
+import { sendEmail } from "../../lib/email";
+import { getTransitEmailHtml, getDeliveredEmailHtml } from "../../lib/order-template";
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
@@ -68,8 +70,16 @@ export const getOrders = async (req: Request, res: Response) => {
       },
       orderBy: { createdAt: "desc" },
     });
-    res.json(orders);
-  } catch (error) {
+
+    // Flatten customer fields for dashboard UI compatibility.
+    const normalizedOrders = orders.map((order) => ({
+      ...order,
+      customerName: order.customerName || order.user?.name || "Unknown Customer",
+      customerEmail: order.customerEmail || order.user?.email || "",
+    }));
+
+    res.json(normalizedOrders);
+  } catch {
     res.status(500).json({ error: "Failed to fetch orders" });
   }
 };
@@ -83,12 +93,42 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   }
 
   try {
+    // Fetch the existing order to check its current status
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: id as string }
+    });
+
+    if (!existingOrder) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
     const order = await prisma.order.update({
       where: { id: id as string },
       data: { status, paymentStatus },
     });
+
+    // Send emails if status changed
+    if (existingOrder.status !== status) {
+      if (status === "TRANSIT" && order.customerEmail) {
+        await sendEmail({
+          to: order.customerEmail,
+          subject: `Order In Transit #${order.orderNumber} - Tiger Balm`,
+          text: `Your order #${order.orderNumber} is now in transit.`,
+          html: getTransitEmailHtml(order.customerName, order.orderNumber),
+        });
+      } else if (status === "DELIVERED" && order.customerEmail) {
+        await sendEmail({
+          to: order.customerEmail,
+          subject: `Order Delivered #${order.orderNumber} - Tiger Balm`,
+          text: `Your order #${order.orderNumber} has been delivered. Thank you for shopping with us!`,
+          html: getDeliveredEmailHtml(order.customerName, order.orderNumber),
+        });
+      }
+    }
+
     res.json(order);
-  } catch (error) {
+  } catch (err) {
+    console.error("Failed to update order:", err);
     res.status(500).json({ error: "Failed to update order" });
   }
 };
@@ -100,7 +140,7 @@ export const getProducts = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
     res.json(products);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch products" });
   }
 };
@@ -148,7 +188,7 @@ export const getUsers = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
     res.json(users);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch architects" });
   }
 };

@@ -30,17 +30,75 @@ interface Stats {
   growthPercentage: number;
 }
 
+interface DashboardOrder {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  totalAmount: number | string;
+  status: string;
+  createdAt: string;
+  items: { id: string }[];
+}
+
+interface DashboardProduct {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  price: number | string;
+  inventory: number;
+  status: string;
+  category?: { name: string } | null;
+  type?: { name: string } | null;
+  description?: string;
+}
+
+interface DashboardUser {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+  createdAt: string;
+}
+
+interface SessionWithToken {
+  session?: {
+    token?: string;
+  };
+  token?: string;
+}
+
+const API_BASE_URL = "http://localhost:8080";
+const ADMIN_API_BASE_URL = `${API_BASE_URL}/api/v1/admin`;
+const IMAGE_FALLBACK_SRC =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='480' viewBox='0 0 640 480'%3E%3Crect width='640' height='480' fill='%23f5f5f4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%238b857a' font-family='Arial,sans-serif' font-size='24'%3EImage unavailable%3C/text%3E%3C/svg%3E";
+
+const getImageSrc = (imageUrl?: string | null) => {
+  if (!imageUrl) return IMAGE_FALLBACK_SRC;
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return imageUrl;
+  }
+  return `${API_BASE_URL}${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
+};
+
 export default function AdminDashboard() {
   const { data: session, isPending: sessionLoading } = useSession();
   const [activeTab, setActiveTab] = useState("overview");
   const [stats, setStats] = useState<Stats | null>(null);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [orders, setOrders] = useState<DashboardOrder[]>([]);
+  const [products, setProducts] = useState<DashboardProduct[]>([]);
+  const [users, setUsers] = useState<DashboardUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [editingProduct, setEditingProduct] = useState<DashboardProduct | null>(
+    null,
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const getAuthToken = () => {
+    const sessionData = session as SessionWithToken | null;
+    return sessionData?.session?.token || sessionData?.token;
+  };
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -68,8 +126,8 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const token = session?.session?.token || (session as any)?.token;
-      const res = await fetch("http://localhost:8080/api/v1/admin/stats", {
+      const token = getAuthToken();
+      const res = await fetch(`${ADMIN_API_BASE_URL}/stats`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -93,8 +151,8 @@ export default function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const token = session?.session?.token || (session as any)?.token;
-      const res = await fetch("http://localhost:8080/api/v1/admin/orders", {
+      const token = getAuthToken();
+      const res = await fetch(`${ADMIN_API_BASE_URL}/orders`, {
         headers: { Authorization: `Bearer ${token}` },
         credentials: "include",
       });
@@ -108,8 +166,8 @@ export default function AdminDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const token = session?.session?.token || (session as any)?.token;
-      const res = await fetch("http://localhost:8080/api/v1/admin/products", {
+      const token = getAuthToken();
+      const res = await fetch(`${ADMIN_API_BASE_URL}/products`, {
         headers: { Authorization: `Bearer ${token}` },
         credentials: "include",
       });
@@ -123,8 +181,8 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const token = session?.session?.token || (session as any)?.token;
-      const res = await fetch("http://localhost:8080/api/v1/admin/users", {
+      const token = getAuthToken();
+      const res = await fetch(`${ADMIN_API_BASE_URL}/users`, {
         headers: { Authorization: `Bearer ${token}` },
         credentials: "include",
       });
@@ -139,20 +197,21 @@ export default function AdminDashboard() {
   const updateOrderStatus = async (id: string, status: string) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/api/v1/admin/orders/${id}`,
+        `${ADMIN_API_BASE_URL}/orders/${id}`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.session?.token}`,
+            Authorization: `Bearer ${getAuthToken()}`,
           },
           body: JSON.stringify({ status }),
+          credentials: "include",
         },
       );
       if (!res.ok) throw new Error("Update failed");
       toast.success("Order Manifest Updated");
       fetchOrders();
-    } catch (error) {
+    } catch {
       toast.error("Failed to update manifest");
     }
   };
@@ -161,17 +220,18 @@ export default function AdminDashboard() {
     if (!confirm("Are you sure you want to decommission this piece?")) return;
     try {
       const res = await fetch(
-        `http://localhost:8080/api/v1/admin/products/${id}`,
+        `${ADMIN_API_BASE_URL}/products/${id}`,
         {
           method: "DELETE",
-          headers: { Authorization: `Bearer ${session?.session?.token}` },
+          headers: { Authorization: `Bearer ${getAuthToken()}` },
+          credentials: "include",
         },
       );
       if (!res.ok) throw new Error("Delete failed");
       toast.success("Product Decommissioned");
       fetchProducts();
       fetchStats();
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete product");
     }
   };
@@ -551,7 +611,12 @@ export default function AdminDashboard() {
               >
                 <div className="relative h-72 overflow-hidden bg-[#F9F8F6]">
                   <img
-                    src={product.imageUrl}
+                    src={getImageSrc(product.imageUrl)}
+                    alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = IMAGE_FALLBACK_SRC;
+                    }}
                     className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000"
                   />
                   <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-x-4 group-hover:translate-x-0">
@@ -698,8 +763,10 @@ export default function AdminDashboard() {
                         }}
                       >
                         <option value="PENDING">PENDING</option>
+                        <option value="PLACED">PLACED</option>
                         <option value="PROCESSING">PROCESSING</option>
                         <option value="SHIPPED">SHIPPED</option>
+                        <option value="TRANSIT">TRANSIT</option>
                         <option value="DELIVERED">DELIVERED</option>
                         <option value="CANCELLED">CANCELLED</option>
                       </select>
@@ -845,11 +912,10 @@ export default function AdminDashboard() {
                   onSubmit={async (e) => {
                     e.preventDefault();
                     const formData = new FormData(e.currentTarget);
-                    const token =
-                      session?.session?.token || (session as any)?.token;
+                    const token = getAuthToken();
                     const url = editingProduct
-                      ? `http://localhost:8080/api/v1/admin/products/${editingProduct.id}`
-                      : "http://localhost:8080/api/v1/admin/products/create";
+                      ? `${ADMIN_API_BASE_URL}/products/${editingProduct.id}`
+                      : `${ADMIN_API_BASE_URL}/products/create`;
 
                     try {
                       const res = await fetch(url, {
@@ -872,7 +938,7 @@ export default function AdminDashboard() {
                       setEditingProduct(null);
                       fetchProducts();
                       fetchStats();
-                    } catch (error) {
+                    } catch {
                       toast.error("Transmission Failed.");
                     }
                   }}

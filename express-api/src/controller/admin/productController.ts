@@ -64,28 +64,34 @@ export const updateProduct = async (req: Request, res: Response) => {
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: {
-        name: name || undefined,
-        description: description || undefined,
-        price: parsedPrice,
-        discount: parsedDiscount,
-        inventory: (parsedInventory !== undefined && !isNaN(parsedInventory)) ? parsedInventory : undefined,
-        imageUrl: imageUrl || undefined,
-        category: category
+        ...(name ? { name } : {}),
+        ...(description ? { description } : {}),
+        ...(parsedPrice !== undefined ? { price: parsedPrice } : {}),
+        ...(parsedDiscount !== undefined ? { discount: parsedDiscount } : {}),
+        ...(parsedInventory !== undefined && !isNaN(parsedInventory)
+          ? { inventory: parsedInventory }
+          : {}),
+        ...(imageUrl ? { imageUrl } : {}),
+        ...(category
           ? {
-              connectOrCreate: {
-                where: { name: category },
-                create: { name: category },
+              category: {
+                connectOrCreate: {
+                  where: { name: category },
+                  create: { name: category },
+                },
               },
             }
-          : undefined,
-        type: type
+          : {}),
+        ...(type
           ? {
-              connectOrCreate: {
-                where: { name: type },
-                create: { name: type },
+              type: {
+                connectOrCreate: {
+                  where: { name: type },
+                  create: { name: type },
+                },
               },
             }
-          : undefined,
+          : {}),
       },
     });
 
