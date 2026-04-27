@@ -4,11 +4,22 @@ import { getOrderConfirmationEmailHtml } from "../../lib/order-template";
 import prisma from "../../lib/prisma";
 
 export const sendOrderConfirmation = async (req: Request, res: Response) => {
-  const { email, customerName, orderNumber, items, total, address, paymentMethod, orderTime } = req.body;
+  const {
+    email,
+    customerName,
+    orderNumber,
+    items,
+    total,
+    address,
+    paymentMethod,
+    orderTime,
+  } = req.body;
   const userId = (req as any).session?.user?.id;
 
   if (!email || !customerName || !orderNumber || !items || !total) {
-    return res.status(400).json({ error: "Missing required order information" });
+    return res
+      .status(400)
+      .json({ error: "Missing required order information" });
   }
 
   try {
@@ -54,7 +65,7 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
       total,
       address || "Address not specified",
       paymentMethod || "COD",
-      orderTime || new Date().toLocaleString()
+      orderTime || new Date().toLocaleString(),
     );
 
     await sendEmail({
@@ -64,7 +75,11 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
       html: htmlContent,
     });
 
-    res.status(200).json({ message: "Order placed and confirmation email sent successfully" });
+    res
+      .status(200)
+      .json({
+        message: "Order placed and confirmation email sent successfully",
+      });
   } catch (error) {
     console.error("Error processing order:", error);
     res.status(500).json({ error: "Failed to process order" });
@@ -79,10 +94,10 @@ export const trackOrder = async (req: Request, res: Response) => {
       include: {
         items: {
           include: {
-            product: true
-          }
-        }
-      }
+            product: true,
+          },
+        },
+      },
     });
 
     if (!order) {

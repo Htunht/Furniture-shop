@@ -17,13 +17,41 @@ import {
   CreditCard,
   ShoppingBag,
   MapPin,
+  Check,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { motion } from "framer-motion";
 
 export default function AccountPage() {
   const { data: session, isPending } = useSession();
   const [loading, setLoading] = useState(false);
   const [activeSection, setActiveSection] = useState("profile");
+  const [userOrders, setUserOrders] = useState<any[]>([]);
+
+  const fetchUserOrders = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/orders", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("better-auth.session_token") || ""}`,
+        },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserOrders(data);
+      }
+    } catch (error) {
+      console.log("Real-time sync error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (session) {
+      fetchUserOrders();
+      const interval = setInterval(fetchUserOrders, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [session]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -151,7 +179,7 @@ export default function AccountPage() {
   return (
     <div className="min-h-screen bg-[#F9F8F6] text-[#2C2926]">
       {/* Dynamic Header */}
-      <section className="relative h-[40vh] flex items-end overflow-hidden bg-[#2C2926] text-white py-12">
+      <section className="relative min-h-[500px] md:h-[50vh] flex items-end overflow-hidden bg-[#2C2926] text-white py-16 md:py-24">
         <div className="absolute inset-0 opacity-20">
           <img
             src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80"
@@ -159,9 +187,14 @@ export default function AccountPage() {
           />
         </div>
         <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col md:flex-row items-end justify-between gap-8">
-            <div className="flex items-end gap-8">
-              <div className="relative group">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-12 lg:gap-8">
+            <div className="flex flex-col md:flex-row items-start md:items-end gap-8">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8 }}
+                className="relative group"
+              >
                 <div className="w-32 h-32 md:w-48 md:h-48 border-8 border-[#F9F8F6] bg-stone-800 overflow-hidden shadow-2xl">
                   {session.user.image ? (
                     <img
@@ -175,38 +208,48 @@ export default function AccountPage() {
                     </div>
                   )}
                 </div>
-                <button className="absolute -right-4 -bottom-4 bg-white text-[#2C2926] p-3 shadow-xl hover:scale-110 transition-transform">
+                <button className="absolute -right-2 -bottom-2 md:-right-4 md:-bottom-4 bg-white text-[#2C2926] p-3 shadow-xl hover:scale-110 transition-transform">
                   <Camera size={20} />
                 </button>
-              </div>
-              <div className="mb-2">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className="mb-2"
+              >
                 <p className="text-[10px] uppercase tracking-[0.5em] font-bold text-stone-400 mb-2">
                   My Sanctuary
                 </p>
                 <h1 className="text-5xl md:text-8xl font-bold tracking-tighter uppercase font-outfit leading-none">
-                  {session.user.name}.
+                  {session.user.name}
                 </h1>
-              </div>
+              </motion.div>
             </div>
-            <div className="hidden lg:flex items-center gap-12 mb-2 text-stone-400">
-              <div>
-                <p className="text-2xl font-bold text-white font-outfit">
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="flex items-center gap-8 mb-2 text-stone-400"
+            >
+              <div className="text-left md:text-right">
+                <p className="text-xl md:text-3xl font-bold text-white font-outfit leading-none mb-1">
                   2026
                 </p>
-                <p className="text-[10px] uppercase tracking-widest font-bold">
+                <p className="text-[8px] md:text-[10px] uppercase tracking-[0.3em] font-black text-stone-500">
                   Member Since
                 </p>
               </div>
-              <div className="w-px h-12 bg-white/10" />
+              <div className="w-px h-10 bg-white/10" />
               <div>
-                <p className="text-2xl font-bold text-white font-outfit">
-                  {localStorage.getItem("totalOrdersCount") || "10"}
+                <p className="text-xl md:text-3xl font-bold text-white font-outfit leading-none mb-1 uppercase tracking-tighter">
+                  {session.user.role || "Citizen"}
                 </p>
-                <p className="text-[10px] uppercase tracking-widest font-bold">
-                  Orders Placed
+                <p className="text-[8px] md:text-[10px] uppercase tracking-[0.3em] font-black text-stone-500">
+                  Sanctuary Rank
                 </p>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -289,7 +332,7 @@ export default function AccountPage() {
                     </span>
                   </div>
                   <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-8 leading-none">
-                    Your Identity.
+                    Your Identity
                   </h2>
                   <p className="text-lg text-[#5C574F] leading-relaxed mb-12 border-l-2 border-[#2C2926] pl-8">
                     Manage your personal information and how we address you.
@@ -373,7 +416,7 @@ export default function AccountPage() {
                     </span>
                   </div>
                   <h2 className="text-4xl md:text-6xl font-bold uppercase tracking-tighter mb-10 leading-none">
-                    Access Email.
+                    Access Email
                   </h2>
 
                   <form onSubmit={handleChangeEmail} className="space-y-8">
@@ -503,19 +546,16 @@ export default function AccountPage() {
 
                   <div className="space-y-8">
                     {(() => {
-                      const allOrders = JSON.parse(
-                        localStorage.getItem("allOrders") || "[]",
-                      );
-                      if (allOrders.length === 0) {
+                      if (userOrders.length === 0) {
                         return (
                           <div className="py-20 text-center border-2 border-dashed border-[#E5E0D8] bg-white">
                             <p className="text-[#8B857A] uppercase font-bold tracking-widest text-[10px]">
-                              No orders found in your archives.
+                              No orders found in your archives
                             </p>
                           </div>
                         );
                       }
-                      return allOrders.map((order: any) => (
+                      return userOrders.map((order: any) => (
                         <div
                           key={order.id}
                           className="bg-white border border-[#E5E0D8] p-8 md:p-10 shadow-sm hover:shadow-xl transition-all duration-500 group"
@@ -526,7 +566,7 @@ export default function AccountPage() {
                                 Reference ID
                               </p>
                               <h3 className="text-xl font-bold font-outfit uppercase tracking-tighter">
-                                #{order.id}
+                                #{order.orderNumber || order.id}
                               </h3>
                             </div>
                             <div className="flex gap-10 md:text-right">
@@ -535,16 +575,16 @@ export default function AccountPage() {
                                   Date Acquired
                                 </p>
                                 <p className="font-bold text-sm">
-                                  {order.date}
+                                  {new Date(order.createdAt).toLocaleDateString()}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">
                                   Status
                                 </p>
-                                <span className="inline-flex items-center gap-2 px-3 py-1 bg-[#F9F8F6] text-[10px] font-bold uppercase tracking-widest text-[#2C2926]">
-                                  <span className="w-1.5 h-1.5 bg-[#2C2926] rounded-full animate-pulse" />
-                                  {order.status}
+                                <span className={`inline-flex items-center gap-2 px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${order.status === "DELIVERED" ? "bg-green-50 text-green-700" : "bg-[#F9F8F6] text-[#2C2926]"}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${order.status === "DELIVERED" ? "bg-green-500" : "bg-[#2C2926] animate-pulse"}`} />
+                                  {order.status === "DELIVERED" ? "Order Completed" : order.status}
                                 </span>
                               </div>
                             </div>
@@ -553,11 +593,15 @@ export default function AccountPage() {
                           <div className="space-y-6 mb-10">
                             {order.items.map((item: any, i: number) => (
                               <div key={i} className="flex items-center gap-6">
-                                <div className="w-14 h-14 bg-[#F9F8F6] shrink-0 overflow-hidden">
-                                  <img
-                                    src={item.image}
-                                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                                  />
+                                <div className="w-14 h-14 bg-[#F9F8F6] shrink-0 overflow-hidden flex items-center justify-center text-[10px] font-bold text-stone-300">
+                                  {item.image ? (
+                                    <img
+                                      src={item.image}
+                                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                                    />
+                                  ) : (
+                                    <span>PIECE</span>
+                                  )}
                                 </div>
                                 <div className="flex-1">
                                   <p className="text-[10px] font-bold uppercase tracking-widest text-[#2C2926]">
@@ -565,13 +609,13 @@ export default function AccountPage() {
                                   </p>
                                   <p className="text-[10px] text-[#8B857A] font-medium">
                                     Qty: {item.quantity} • $
-                                    {item.discount.toLocaleString()}
+                                    {Number(item.price).toLocaleString()}
                                   </p>
                                 </div>
                                 <p className="text-xs font-bold">
                                   $
                                   {(
-                                    item.discount * item.quantity
+                                    Number(item.price) * item.quantity
                                   ).toLocaleString()}
                                 </p>
                               </div>
@@ -584,19 +628,32 @@ export default function AccountPage() {
                                 Total Investment:
                               </span>
                               <span className="text-xl font-bold font-outfit">
-                                ${order.total.toLocaleString()}
+                                ${Number(order.totalAmount).toLocaleString()}
                               </span>
                             </div>
-                            <Link
-                              to={`/track-order?id=${order.id}`}
-                              className="inline-flex items-center gap-3 h-12 px-8 bg-[#2C2926] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all group/btn"
-                            >
-                              Live Tracking{" "}
-                              <ArrowRight
-                                size={14}
-                                className="group-hover/btn:translate-x-1 transition-transform"
-                              />
-                            </Link>
+                            {order.status === "DELIVERED" ? (
+                              <button
+                                className="inline-flex items-center gap-3 h-12 px-8 bg-green-800 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-green-900 transition-all group/btn"
+                                onClick={() => toast.success("Thank you for your rating!")}
+                              >
+                                Done Order rating us{" "}
+                                <Check
+                                  size={14}
+                                  className="group-hover/btn:scale-110 transition-transform"
+                                />
+                              </button>
+                            ) : (
+                              <Link
+                                to={`/track-order?id=${order.orderNumber}`}
+                                className="inline-flex items-center gap-3 h-12 px-8 bg-[#2C2926] text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-800 transition-all group/btn"
+                              >
+                                Live Tracking{" "}
+                                <ArrowRight
+                                  size={14}
+                                  className="group-hover/btn:translate-x-1 transition-transform"
+                                />
+                              </Link>
+                            )}
                           </div>
                         </div>
                       ));

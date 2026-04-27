@@ -158,7 +158,11 @@ export default function AdminDashboard() {
       });
       if (!res.ok) throw new Error("Failed to fetch orders");
       const data = await res.json();
-      setOrders(data);
+      const statusOrder = ["PENDING", "PLACED", "PROCESSING", "SHIPPED", "TRANSIT", "DELIVERED", "CANCELLED"];
+      const sortedOrders = [...data].sort((a: DashboardOrder, b: DashboardOrder) => {
+        return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status);
+      });
+      setOrders(sortedOrders);
     } catch (error) {
       console.error("Orders fetch error:", error);
     }
@@ -672,95 +676,153 @@ export default function AdminDashboard() {
         {/* Orders Tab - Detailed Manifest */}
         {activeTab === "orders" && (
           <div className="bg-white border border-[#E5E0D8] shadow-2xl overflow-hidden">
-            <div className="p-10 border-b border-[#E5E0D8] flex justify-between items-center bg-stone-50/50">
+            <div className="p-6 md:p-10 border-b border-[#E5E0D8] flex flex-col sm:flex-row justify-between sm:items-center bg-stone-50/50 gap-6">
               <h3 className="text-xl font-black uppercase tracking-tight font-outfit">
                 Manifest Synchronization
               </h3>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-3">
                 <Button
                   variant="outline"
-                  className="h-10 rounded-none text-[10px] font-bold uppercase tracking-widest border-stone-200"
+                  className="flex-1 sm:flex-none h-10 rounded-none text-[9px] font-bold uppercase tracking-widest border-stone-200"
                 >
                   Export CSV
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-10 rounded-none text-[10px] font-bold uppercase tracking-widest border-stone-200"
+                  className="flex-1 sm:flex-none h-10 rounded-none text-[9px] font-bold uppercase tracking-widest border-stone-200"
                 >
                   Print Logs
                 </Button>
               </div>
             </div>
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-[#E5E0D8]">
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Identification
-                  </th>
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Architect
-                  </th>
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Valuation
-                  </th>
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Operational Status
-                  </th>
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Execution
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {orders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="hover:bg-stone-50/80 transition-all group"
-                  >
-                    <td className="p-8">
-                      <p className="text-sm font-black uppercase tracking-tight group-hover:translate-x-1 transition-transform inline-block">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-[#E5E0D8]">
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Identification
+                    </th>
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Architect
+                    </th>
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Valuation
+                    </th>
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Operational Status
+                    </th>
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Execution
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {orders.map((order) => (
+                    <tr
+                      key={order.id}
+                      className="hover:bg-stone-50/80 transition-all group"
+                    >
+                      <td className="p-8">
+                        <p className="text-sm font-black uppercase tracking-tight group-hover:translate-x-1 transition-transform inline-block">
+                          #{order.orderNumber}
+                        </p>
+                        <p className="text-[9px] text-[#BBB] font-bold uppercase tracking-widest mt-1">
+                          {new Date(order.createdAt).toLocaleString()}
+                        </p>
+                      </td>
+                      <td className="p-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center font-black text-xs text-stone-400 group-hover:bg-[#2C2926] group-hover:text-white transition-colors">
+                            {order.customerName.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-xs font-black uppercase tracking-tight">
+                              {order.customerName}
+                            </p>
+                            <p className="text-[10px] text-[#8B857A] font-medium">
+                              {order.customerEmail}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-8">
+                        <p className="text-lg font-black font-outfit">
+                          ${Number(order.totalAmount).toLocaleString()}
+                        </p>
+                        <p className="text-[9px] text-stone-400 font-bold uppercase tracking-widest">
+                          {order.items.length} PIECES
+                        </p>
+                      </td>
+                      <td className="p-8">
+                        <select
+                          value={order.status}
+                          onChange={(e) =>
+                            updateOrderStatus(order.id, e.target.value)
+                          }
+                          className="bg-stone-100 border-none outline-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-3 cursor-pointer hover:bg-[#2C2926] hover:text-white transition-all appearance-none pr-10 relative"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'%3E%3C/path%3E%3C/svg%3E")`,
+                            backgroundRepeat: "no-repeat",
+                            backgroundPosition: "right 10px center",
+                            backgroundSize: "12px",
+                          }}
+                        >
+                          <option value="PENDING">PENDING</option>
+                          <option value="PLACED">PLACED</option>
+                          <option value="PROCESSING">PROCESSING</option>
+                          <option value="SHIPPED">SHIPPED</option>
+                          <option value="TRANSIT">TRANSIT</option>
+                          <option value="DELIVERED">DELIVERED</option>
+                          <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                      </td>
+                      <td className="p-8">
+                        <button className="flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#8B857A] hover:text-[#2C2926] transition-colors border-b border-transparent hover:border-[#2C2926] pb-1">
+                          <ExternalLink size={12} /> View File
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-stone-100">
+              {orders.map((order) => (
+                <div key={order.id} className="p-6 space-y-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-black uppercase tracking-tight">
                         #{order.orderNumber}
                       </p>
                       <p className="text-[9px] text-[#BBB] font-bold uppercase tracking-widest mt-1">
-                        {new Date(order.createdAt).toLocaleString()}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </p>
-                    </td>
-                    <td className="p-8">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center font-black text-xs text-stone-400 group-hover:bg-[#2C2926] group-hover:text-white transition-colors">
-                          {order.customerName.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-xs font-black uppercase tracking-tight">
-                            {order.customerName}
-                          </p>
-                          <p className="text-[10px] text-[#8B857A] font-medium">
-                            {order.customerEmail}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-8">
-                      <p className="text-lg font-black font-outfit">
-                        ${Number(order.totalAmount).toLocaleString()}
-                      </p>
-                      <p className="text-[9px] text-stone-400 font-bold uppercase tracking-widest">
-                        {order.items.length} PIECES
-                      </p>
-                    </td>
-                    <td className="p-8">
+                    </div>
+                    <p className="text-xl font-black font-outfit">
+                      ${Number(order.totalAmount).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 py-4 border-y border-stone-50">
+                    <div className="w-10 h-10 bg-[#2C2926] text-white rounded-full flex items-center justify-center font-black text-xs">
+                      {order.customerName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-tight">{order.customerName}</p>
+                      <p className="text-[10px] text-[#8B857A] font-medium">{order.customerEmail}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-[#8B857A]">STATUS</span>
                       <select
                         value={order.status}
-                        onChange={(e) =>
-                          updateOrderStatus(order.id, e.target.value)
-                        }
-                        className="bg-stone-100 border-none outline-none text-[10px] font-black uppercase tracking-[0.2em] px-4 py-3 cursor-pointer hover:bg-[#2C2926] hover:text-white transition-all appearance-none pr-10 relative"
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'%3E%3C/path%3E%3C/svg%3E")`,
-                          backgroundRepeat: "no-repeat",
-                          backgroundPosition: "right 10px center",
-                          backgroundSize: "12px",
-                        }}
+                        onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                        className="bg-stone-100 border-none outline-none text-[9px] font-black uppercase tracking-[0.1em] px-3 py-2 rounded-none"
                       >
                         <option value="PENDING">PENDING</option>
                         <option value="PLACED">PLACED</option>
@@ -770,22 +832,20 @@ export default function AdminDashboard() {
                         <option value="DELIVERED">DELIVERED</option>
                         <option value="CANCELLED">CANCELLED</option>
                       </select>
-                    </td>
-                    <td className="p-8">
-                      <button className="flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#8B857A] hover:text-[#2C2926] transition-colors border-b border-transparent hover:border-[#2C2926] pb-1">
-                        <ExternalLink size={12} /> View File
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <Button variant="outline" className="w-full h-12 rounded-none text-[9px] font-black uppercase tracking-widest border-stone-200">
+                      <ExternalLink size={12} className="mr-2" /> View Full Manifest
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {activeTab === "users" && (
           <div className="bg-white border border-[#E5E0D8] shadow-2xl overflow-hidden">
-            <div className="p-10 border-b border-[#E5E0D8] flex justify-between items-center bg-stone-50/50">
+            <div className="p-6 md:p-10 border-b border-[#E5E0D8] flex flex-col sm:flex-row justify-between sm:items-center bg-stone-50/50 gap-4">
               <h3 className="text-xl font-black uppercase tracking-tight font-outfit">
                 Architectural Roster
               </h3>
@@ -793,67 +853,106 @@ export default function AdminDashboard() {
                 {users.length} Total Registered
               </p>
             </div>
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-[#E5E0D8]">
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Architect
-                  </th>
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Privileges
-                  </th>
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Commencement
-                  </th>
-                  <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100">
-                {users.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-stone-50/80 transition-all group"
-                  >
-                    <td className="p-8">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-[#2C2926] rounded-none flex items-center justify-center text-white font-black text-lg">
-                          {user.name?.charAt(0) || "U"}
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-[#E5E0D8]">
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Architect
+                    </th>
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Privileges
+                    </th>
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Commencement
+                    </th>
+                    <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {users.map((user) => (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-stone-50/80 transition-all group"
+                    >
+                      <td className="p-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-[#2C2926] rounded-none flex items-center justify-center text-white font-black text-lg">
+                            {user.name?.charAt(0) || "U"}
+                          </div>
+                          <div>
+                            <p className="text-sm font-black uppercase tracking-tight">
+                              {user.name}
+                            </p>
+                            <p className="text-[10px] text-[#8B857A] font-medium">
+                              {user.email}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-black uppercase tracking-tight">
-                            {user.name}
-                          </p>
-                          <p className="text-[10px] text-[#8B857A] font-medium">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-8">
-                      <span
-                        className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 ${user.role === "admin" ? "bg-[#2C2926] text-white" : "bg-stone-100 text-[#8B857A]"}`}
-                      >
+                      </td>
+                      <td className="p-8">
+                        <span
+                          className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1 ${user.role === "admin" ? "bg-[#2C2926] text-white" : "bg-stone-100 text-[#8B857A]"}`}
+                        >
+                          {user.role || "user"}
+                        </span>
+                      </td>
+                      <td className="p-8 text-[10px] font-bold uppercase tracking-widest text-[#8B857A]">
+                        {new Date(user.createdAt).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td className="p-8">
+                        <button className="text-[9px] font-black uppercase tracking-[0.3em] text-[#8B857A] hover:text-[#2C2926] transition-colors">
+                          View Profile
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-stone-100">
+              {users.map((user) => (
+                <div key={user.id} className="p-6 flex flex-col gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-[#2C2926] text-white flex items-center justify-center font-black text-xl">
+                      {user.name?.charAt(0) || "U"}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black uppercase tracking-tight">{user.name}</p>
+                      <p className="text-[10px] text-[#8B857A] font-medium">{user.email}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 py-4 border-y border-stone-50">
+                    <div>
+                      <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest mb-1">PRIVILEGES</p>
+                      <span className={`text-[9px] font-black uppercase tracking-[0.1em] px-2 py-0.5 ${user.role === "admin" ? "bg-[#2C2926] text-white" : "bg-stone-100 text-[#8B857A]"}`}>
                         {user.role || "user"}
                       </span>
-                    </td>
-                    <td className="p-8 text-[10px] font-bold uppercase tracking-widest text-[#8B857A]">
-                      {new Date(user.createdAt).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="p-8">
-                      <button className="text-[9px] font-black uppercase tracking-[0.3em] text-[#8B857A] hover:text-[#2C2926] transition-colors">
-                        View Profile
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <div>
+                      <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest mb-1">COMMENCEMENT</p>
+                      <p className="text-[9px] font-bold uppercase tracking-tighter">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button variant="outline" className="w-full h-12 rounded-none text-[9px] font-black uppercase tracking-widest border-stone-200">
+                    Access Architect Profile
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>

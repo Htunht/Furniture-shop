@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import {
-  Truck,
-  MapPin,
   Clock,
   Box,
   Search,
@@ -11,6 +9,10 @@ import {
   Package,
   ShieldCheck,
   ArrowRight,
+  MapPin,
+  Truck,
+  User,
+  Navigation,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +62,6 @@ export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState(searchParams.get("id") || "");
   const [showResult, setShowResult] = useState(!!searchParams.get("id"));
   const [orderData, setOrderData] = useState<any>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -106,10 +107,7 @@ export default function TrackOrderPage() {
       intervalId = setInterval(fetchOrder, 3000);
     }
     
-    // Simulate map loading
-    const timer = setTimeout(() => setMapLoaded(true), 1000);
     return () => {
-      clearTimeout(timer);
       if (intervalId) clearInterval(intervalId);
     };
   }, [showResult, orderId]);
@@ -183,7 +181,7 @@ export default function TrackOrderPage() {
                   placeholder="Enter Order ID (e.g. #TB-88291)"
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
-                  className="bg-white border-0 pl-16 h-20 rounded-none focus-visible:ring-0 text-xl font-medium placeholder:text-[#BBB]"
+                  className="bg-white border-0 pl-16 h-20 rounded-none focus-visible:ring-0 text-xl font-medium placeholder:text-[#BBB] transition-all focus:bg-stone-50"
                 />
               </div>
               <Button
@@ -248,7 +246,9 @@ export default function TrackOrderPage() {
                       <div className="absolute top-1/2 left-0 w-full h-px bg-[#EBE7DF] -translate-y-1/2" />
                       <div 
                         className="absolute top-1/2 left-0 h-1 bg-[#2C2926] -translate-y-1/2 transition-all duration-1000" 
-                        style={{ width: `${orderData ? Math.min(100, Math.max(0, (['PENDING', 'PLACED', 'PROCESSING', 'SHIPPED', 'TRANSIT', 'DELIVERED'].indexOf(orderData.status === 'PENDING' ? 'PLACED' : orderData.status) - 1) * 25)) : 0}%` }} 
+                        style={{ 
+                          width: orderData ? `${Math.min(100, Math.max(0, (['PENDING', 'PLACED', 'PROCESSING', 'SHIPPED', 'TRANSIT', 'DELIVERED'].indexOf(orderData.status === 'PENDING' ? 'PLACED' : orderData.status) - 1) * 25))}%` : '0%' 
+                        }} 
                       />
                       <div className="relative flex justify-between">
                         {['Placed', 'Processing', 'Shipped', 'Transit', 'Delivered'].map((label, i) => {
@@ -285,7 +285,7 @@ export default function TrackOrderPage() {
                               ) : "Pending"}
                             </p>
                           </div>
-                          <div className="relative flex-1 pb-10 border-l border-[#EBE7DF] pl-10 last:border-0 last:pb-0">
+                          <div className="relative flex-1 pb-16 border-l border-[#EBE7DF] pl-10 last:border-0 last:pb-0">
                             <div className={`absolute -left-[5px] top-2 w-2.5 h-2.5 rounded-full ${step.completed ? 'bg-[#2C2926]' : step.active ? 'bg-white border-2 border-[#2C2926]' : 'bg-[#EBE7DF]'}`} />
                             <h3 className="text-lg font-bold uppercase tracking-tight mb-2 flex items-center gap-3">
                               {step.status}
@@ -314,59 +314,63 @@ export default function TrackOrderPage() {
                     </div>
                   </div>
 
-                  {/* Map Section */}
-                  <div className="relative h-[500px] bg-[#EBE7DF] shadow-sm border border-[#E5E0D8] overflow-hidden group">
-                    <img
-                      src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80"
-                      alt="Map"
-                      className={`w-full h-full object-cover transition-all duration-2000 ${mapLoaded ? 'opacity-40 grayscale-0 scale-105' : 'opacity-20 grayscale scale-100'}`}
-                    />
-                    
-                    {/* Animated Map Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent pointer-events-none" />
-                    
-                    {/* Driver Icon Simulation */}
-                    <motion.div 
-                      initial={{ x: -100, y: 100 }}
-                      animate={{ x: 50, y: -50 }}
-                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                      className="absolute left-1/2 top-1/2 z-20"
-                    >
-                      <div className="relative">
-                        <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-[#2C2926] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap shadow-2xl">
-                          Driver is 8 mins away
+                  {/* Shipping Info Card */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="bg-white p-10 shadow-sm border border-[#E5E0D8] group hover:border-[#2C2926] transition-colors duration-500">
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="w-12 h-12 bg-[#F9F8F6] flex items-center justify-center text-[#2C2926]">
+                          <User size={20} />
                         </div>
-                        <div className="w-14 h-14 bg-[#2C2926] rounded-full flex items-center justify-center text-white shadow-[0_0_40px_rgba(44,41,38,0.4)] border-4 border-white animate-bounce-slow">
-                          <Truck size={24} />
-                        </div>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-4 h-4 bg-[#2C2926]/20 rounded-full blur-sm mt-1" />
+                        <h3 className="text-sm font-bold uppercase tracking-widest">Customer Details</h3>
                       </div>
-                    </motion.div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">Recipient</p>
+                          <p className="text-lg font-bold font-outfit uppercase">{orderData?.customerName || "Valued Customer"}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">Contact Status</p>
+                          <p className="text-xs font-medium text-[#5C574F]">Primary phone and email verified for delivery.</p>
+                        </div>
+                      </div>
+                    </div>
 
-                    <div className="absolute bottom-10 left-10 right-10 bg-white/80 backdrop-blur-md p-8 border border-white/50 shadow-2xl">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6">
-                          <div className="w-12 h-12 bg-[#2C2926] flex items-center justify-center text-white">
-                            <MapPin size={24} />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">
-                              Current Location
-                            </p>
-                            <p className="text-xl font-bold uppercase font-outfit">
-                              North District Hub, 12th St.
-                            </p>
-                          </div>
+                    <div className="bg-white p-10 shadow-sm border border-[#E5E0D8] group hover:border-[#2C2926] transition-colors duration-500">
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="w-12 h-12 bg-[#F9F8F6] flex items-center justify-center text-[#2C2926]">
+                          <Navigation size={20} />
                         </div>
-                        <div className="text-right">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">
-                            Status
+                        <h3 className="text-sm font-bold uppercase tracking-widest">Delivery Destination</h3>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">Shipping Address</p>
+                          <p className="text-lg font-bold font-outfit uppercase leading-tight">
+                            {orderData?.address || "123 Tiger Lane, Havenly Heights, NY 10001"}
                           </p>
-                          <p className="text-xl font-bold text-green-600 uppercase">
-                            {orderData?.status || "Loading..."}
-                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 text-green-600">
+                          <MapPin size={12} />
+                          <span className="text-[10px] font-bold uppercase tracking-widest">Verified Location</span>
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Delivery Note */}
+                  <div className="bg-[#2C2926] p-8 text-white flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex items-center gap-6">
+                      <div className="w-16 h-16 bg-white/10 flex items-center justify-center">
+                        <Truck size={32} className="text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] mb-1 text-stone-400">Logistics Partner</p>
+                        <h4 className="text-xl font-bold font-outfit uppercase">Tiger White-Glove Express</h4>
+                      </div>
+                    </div>
+                    <div className="text-center md:text-right">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Estimated Arrival</p>
+                      <p className="text-2xl font-bold font-outfit italic">April 28, 2026</p>
                     </div>
                   </div>
                 </div>
@@ -389,13 +393,13 @@ export default function TrackOrderPage() {
                                 className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500"
                               />
                             </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-bold uppercase tracking-widest leading-tight mb-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold uppercase tracking-widest leading-tight mb-2 truncate">
                                 {item.name}
                               </p>
                               <div className="flex justify-between items-center">
                                 <span className="text-[10px] text-stone-500 uppercase font-bold">Qty: {item.quantity}</span>
-                                <span className="text-xs font-bold">${(item.discount * item.quantity).toLocaleString()}</span>
+                                <span className="text-xs font-bold text-stone-300">${(item.discount * item.quantity).toLocaleString()}</span>
                               </div>
                             </div>
                           </div>
@@ -494,12 +498,9 @@ export default function TrackOrderPage() {
       </AnimatePresence>
 
       <style>{`
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-bounce-slow {
-          animation: bounce-slow 3s infinite ease-in-out;
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
         }
       `}</style>
     </div>
