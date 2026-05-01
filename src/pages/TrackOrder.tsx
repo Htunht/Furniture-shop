@@ -13,6 +13,10 @@ import {
   Truck,
   User,
   Navigation,
+  AlertTriangle,
+  XCircle,
+  Headphones,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,8 +81,11 @@ export default function TrackOrderPage() {
           setOrderData({
             id: data.orderNumber,
             date: new Date(data.createdAt).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' }),
+            rawCreatedAt: data.createdAt,
             total: data.totalAmount,
             status: data.status,
+            paymentStatus: data.paymentStatus,
+            paymentMethod: data.paymentMethod,
             customerName: data.customerName,
             address: data.address,
             updatedAt: data.updatedAt,
@@ -215,9 +222,9 @@ export default function TrackOrderPage() {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mb-16">
                       <div>
                         <div className="flex items-center gap-2 mb-4">
-                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#8B857A]">
-                            Live Update • Just Now
+                          <span className={`w-2 h-2 rounded-full animate-pulse ${orderData?.paymentStatus === "FAILED" ? "bg-red-500" : "bg-green-500"}`} />
+                          <p className={`text-[10px] font-bold uppercase tracking-[0.3em] ${orderData?.paymentStatus === "FAILED" ? "text-red-600" : "text-[#8B857A]"}`}>
+                            {orderData?.paymentStatus === "FAILED" ? "Payment Failed • Action Required" : "Live Update • Just Now"}
                           </p>
                         </div>
                         <h2 className="text-4xl font-bold font-outfit uppercase tracking-tighter">
@@ -240,6 +247,77 @@ export default function TrackOrderPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Payment Failed Banner on Track Page */}
+                    {orderData?.paymentStatus === "FAILED" && (
+                      <div className="mb-16 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="bg-red-600 text-white px-8 py-4 flex items-center gap-3">
+                          <AlertTriangle size={18} className="shrink-0 animate-pulse" />
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em]">
+                            Payment Verification Failed — Order On Hold
+                          </p>
+                        </div>
+                        <div className="bg-gradient-to-br from-red-50 to-white border border-t-0 border-red-100 p-8">
+                          <div className="flex flex-col md:flex-row gap-8">
+                            <div className="flex-1">
+                              <div className="flex items-start gap-4 mb-6">
+                                <div className="w-14 h-14 bg-red-100 flex items-center justify-center shrink-0">
+                                  <XCircle size={28} className="text-red-600" />
+                                </div>
+                                <div>
+                                  <h3 className="text-lg font-black uppercase tracking-tight text-red-800 mb-2">
+                                    Transaction Could Not Be Verified
+                                  </h3>
+                                  <p className="text-sm text-red-700/80 font-medium leading-relaxed">
+                                    Our admin team was unable to confirm your payment. This may be due to incorrect
+                                    KBZ Pay details, an incomplete transfer, or mismatched account information.
+                                    Your order will remain on hold until the payment is resolved.
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="bg-white border border-red-100 p-5 space-y-3">
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-red-600">Next Steps</p>
+                                <ul className="space-y-2">
+                                  {[
+                                    "Contact support with your KBZ Pay transaction receipt.",
+                                    "Provide the correct transaction number and account details.",
+                                    "Once verified, your order will resume processing immediately.",
+                                  ].map((step, idx) => (
+                                    <li key={idx} className="flex items-start gap-3 text-[11px] text-[#5C574F] font-medium">
+                                      <span className="bg-red-500 text-white text-[8px] font-black w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">{idx + 1}</span>
+                                      {step}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                            <div className="md:w-56 flex flex-col gap-3">
+                              <a
+                                href="/contact"
+                                className="flex items-center justify-center gap-3 h-14 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+                              >
+                                <Headphones size={16} />
+                                Contact Support
+                              </a>
+                              <a
+                                href="tel:+959777788888"
+                                className="flex items-center justify-center gap-3 h-14 bg-white border-2 border-red-200 text-red-700 text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all"
+                              >
+                                <Phone size={16} />
+                                Call Us
+                              </a>
+                              <a
+                                href="mailto:support@tigerbalm.store"
+                                className="flex items-center justify-center gap-3 h-14 bg-white border-2 border-red-200 text-red-700 text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all"
+                              >
+                                <MessageCircle size={16} />
+                                Email Us
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Horizontal Progress Bar */}
                     <div className="relative mb-20 px-4">
@@ -273,7 +351,7 @@ export default function TrackOrderPage() {
 
                     {/* Details List */}
                     <div className="space-y-10">
-                      {(orderData ? getDynamicSteps(orderData.status, orderData.date, orderData.updatedAt) : defaultOrderSteps).map((step, idx) => (
+                      {(orderData ? getDynamicSteps(orderData.status, orderData.rawCreatedAt, orderData.updatedAt) : defaultOrderSteps).map((step, idx) => (
                         <div key={idx} className={`flex gap-8 ${!step.completed && !step.active ? 'opacity-40' : ''}`}>
                           <div className="w-16 text-right shrink-0 pt-1">
                             <p className="text-[10px] font-bold text-[#8B857A] uppercase leading-tight">
@@ -427,24 +505,48 @@ export default function TrackOrderPage() {
                     </div>
                   </div>
 
-                  <div className="bg-white border border-[#E5E0D8] p-12">
-                    <h3 className="text-xl font-bold uppercase mb-8 tracking-tight font-outfit">
-                      Concierge Support
+                  <div className={`p-12 border ${orderData?.paymentStatus === "FAILED" ? "bg-red-50 border-red-200" : "bg-white border-[#E5E0D8]"}`}>
+                    <h3 className={`text-xl font-bold uppercase mb-2 tracking-tight font-outfit ${orderData?.paymentStatus === "FAILED" ? "text-red-800" : ""}`}>
+                      {orderData?.paymentStatus === "FAILED" ? "Urgent: Resolve Payment" : "Concierge Support"}
                     </h3>
-                    <div className="space-y-4">
-                      <button className="w-full h-16 border border-[#2C2926] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#2C2926] hover:text-white transition-all group">
-                        <Phone size={16} className="group-hover:rotate-12 transition-transform" /> 
-                        +1 (800) TIGER-LOG
-                      </button>
-                      <button className="w-full h-16 bg-[#F9F8F6] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#EBE7DF] transition-all">
-                        <Mail size={16} /> 
-                        Direct Messaging
-                      </button>
-                    </div>
-                    <div className="mt-10 flex items-start gap-4 p-6 bg-[#F9F8F6] border-l-4 border-[#2C2926]">
-                      <ShieldCheck className="shrink-0 w-5 h-5 text-[#2C2926]" />
-                      <p className="text-[10px] text-[#5C574F] font-bold uppercase tracking-widest leading-loose">
-                        Insured & Guaranteed by Havenly Shield™
+                    {orderData?.paymentStatus === "FAILED" && (
+                      <p className="text-[10px] text-red-600 font-bold uppercase tracking-widest mb-6">
+                        Your order is paused — please contact us
+                      </p>
+                    )}
+                    {!orderData?.paymentStatus || orderData.paymentStatus !== "FAILED" ? (
+                      <div className="space-y-4 mt-6">
+                        <button className="w-full h-16 border border-[#2C2926] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#2C2926] hover:text-white transition-all group">
+                          <Phone size={16} className="group-hover:rotate-12 transition-transform" /> 
+                          +1 (800) TIGER-LOG
+                        </button>
+                        <button className="w-full h-16 bg-[#F9F8F6] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#EBE7DF] transition-all">
+                          <Mail size={16} /> 
+                          Direct Messaging
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <a href="/contact" className="w-full h-16 bg-red-600 text-white flex items-center justify-center gap-4 text-xs font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-200">
+                          <Headphones size={18} /> 
+                          Contact Support Now
+                        </a>
+                        <a href="tel:+959777788888" className="w-full h-14 border-2 border-red-200 text-red-700 flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-red-100 transition-all">
+                          <Phone size={16} /> 
+                          +959 777 788 888
+                        </a>
+                        <a href="mailto:support@tigerbalm.store" className="w-full h-14 border-2 border-red-200 text-red-700 flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-red-100 transition-all">
+                          <Mail size={16} /> 
+                          support@tigerbalm.store
+                        </a>
+                      </div>
+                    )}
+                    <div className={`mt-10 flex items-start gap-4 p-6 border-l-4 ${orderData?.paymentStatus === "FAILED" ? "bg-red-100/50 border-red-500" : "bg-[#F9F8F6] border-[#2C2926]"}`}>
+                      <ShieldCheck className={`shrink-0 w-5 h-5 ${orderData?.paymentStatus === "FAILED" ? "text-red-600" : "text-[#2C2926]"}`} />
+                      <p className={`text-[10px] font-bold uppercase tracking-widest leading-loose ${orderData?.paymentStatus === "FAILED" ? "text-red-700" : "text-[#5C574F]"}`}>
+                        {orderData?.paymentStatus === "FAILED"
+                          ? "Your order will not ship until payment is verified. Please reach out immediately."
+                          : "Insured & Guaranteed by Havenly Shield™"}
                       </p>
                     </div>
                   </div>

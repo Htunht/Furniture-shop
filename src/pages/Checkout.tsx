@@ -13,6 +13,13 @@ import {
   CreditCard as PaymentIcon,
   Smartphone,
   Wallet,
+  Copy,
+  CheckCircle2,
+  Clock,
+  Hash,
+  User as UserIcon,
+  Phone,
+  QrCode,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { Spinner } from "@/components/ui/spinner";
@@ -23,6 +30,25 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [copied, setCopied] = useState(false);
+  const [kpayData, setKpayData] = useState({
+    username: "",
+    phone: "",
+    transactionLast5: "",
+    transactionTime: "",
+  });
+
+  const ADMIN_KPAY = {
+    name: "Tiger Balm Store",
+    phone: "+959 777 788 888",
+    qr: "/kpay-qr.png",
+  };
+
+  const handleCopyPhone = () => {
+    navigator.clipboard.writeText(ADMIN_KPAY.phone);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const [formData, setFormData] = useState({
     firstName: session?.user?.name?.split(" ")[0] || "",
@@ -41,6 +67,15 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate KPay fields
+    if (paymentMethod === "kpay") {
+      if (!kpayData.username.trim()) return toast.error("Please enter your KBZ Pay username.");
+      if (!kpayData.phone.trim()) return toast.error("Please enter your KBZ Pay phone number.");
+      if (kpayData.transactionLast5.trim().length !== 5) return toast.error("Please enter the last 5 digits of your Transaction No.");
+      if (!kpayData.transactionTime.trim()) return toast.error("Please enter the Transaction Time.");
+    }
+
     setLoading(true);
 
     try {
@@ -49,8 +84,10 @@ export default function CheckoutPage() {
       // Call the order confirmation email API
       const response = await fetch("http://localhost:8080/api/v1/order/confirm", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("better-auth.session_token") || ""}`,
         },
         body: JSON.stringify({
           email: formData.email,
@@ -65,6 +102,7 @@ export default function CheckoutPage() {
           total: total,
           address: `${formData.street}, ${formData.city}, ${formData.country}`,
           paymentMethod: paymentMethod,
+          paymentDetails: paymentMethod === "kpay" ? JSON.stringify(kpayData) : undefined,
           orderTime: new Date().toLocaleString('en-US', { 
             dateStyle: 'medium', 
             timeStyle: 'short' 
@@ -309,41 +347,174 @@ export default function CheckoutPage() {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Method Selector Tabs */}
+                <div className="grid grid-cols-3 gap-3">
                   {[
-                    {
-                      id: "cod",
-                      label: "Cash on Delivery",
-                      icon: <Wallet size={18} />,
-                    },
-                    {
-                      id: "kpay",
-                      label: "KBZ Pay",
-                      icon: <Smartphone size={18} />,
-                    },
-                    {
-                      id: "ayapay",
-                      label: "AYA Pay",
-                      icon: <Smartphone size={18} />,
-                    },
+                    { id: "cod", label: "Cash on Delivery", icon: <Wallet size={18} /> },
+                    { id: "kpay",   label: "KBZ Pay",          icon: <Smartphone size={18} /> },
+                    { id: "ayapay", label: "AYA Pay",          icon: <Smartphone size={18} /> },
                   ].map((method) => (
                     <button
                       key={method.id}
                       type="button"
                       onClick={() => setPaymentMethod(method.id)}
-                      className={`flex flex-col items-center justify-center p-8 gap-4 border-2 transition-all duration-300 ${
+                      className={`flex flex-col items-center justify-center py-6 gap-3 border-2 transition-all duration-300 ${
                         paymentMethod === method.id
-                          ? "border-[#2C2926] bg-white shadow-xl scale-105"
+                          ? "border-[#2C2926] bg-white shadow-xl"
                           : "border-[#E5E0D8] text-[#8B857A] hover:border-[#2C2926] hover:text-[#2C2926]"
                       }`}
                     >
                       {method.icon}
-                      <span className="text-[10px] uppercase tracking-widest font-bold">
-                        {method.label}
-                      </span>
+                      <span className="text-[9px] uppercase tracking-widest font-bold">{method.label}</span>
                     </button>
                   ))}
                 </div>
+
+                {/* ── KBZ Pay Panel ── */}
+                {paymentMethod === "kpay" && (
+                  <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                    {/* Step banner */}
+                    <div className="flex items-center gap-3 bg-blue-600 text-white px-6 py-3 mb-0">
+                      <QrCode size={16} />
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em]">
+                        KBZ Pay — Complete Your Transfer Then Fill in Details Below
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 border border-t-0 border-[#E5E0D8]">
+
+                      {/* LEFT — Admin QR & Info */}
+                      <div className="bg-gradient-to-br from-[#1a3a6b] to-[#0d2040] text-white p-8 flex flex-col items-center gap-6">
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-blue-300 text-center mb-1">Step 1</p>
+                          <p className="text-xs font-bold uppercase tracking-widest text-center text-white/80">Scan QR or Transfer to</p>
+                        </div>
+
+                        {/* QR Code */}
+                        <div className="relative bg-white p-3 shadow-2xl">
+                          <img
+                            src={ADMIN_KPAY.qr}
+                            alt="KBZ Pay QR Code"
+                            className="w-44 h-44 object-cover"
+                          />
+                          <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5">
+                            KBZ Pay
+                          </div>
+                        </div>
+
+                        {/* Admin Details */}
+                        <div className="w-full space-y-3">
+                          <div className="flex items-center justify-between bg-white/10 px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <UserIcon size={14} className="text-blue-300 shrink-0" />
+                              <div>
+                                <p className="text-[8px] uppercase tracking-widest text-blue-300 font-bold">Account Name</p>
+                                <p className="text-sm font-bold">{ADMIN_KPAY.name}</p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between bg-white/10 px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <Phone size={14} className="text-blue-300 shrink-0" />
+                              <div>
+                                <p className="text-[8px] uppercase tracking-widest text-blue-300 font-bold">Phone Number</p>
+                                <p className="text-sm font-bold font-mono tracking-wider">{ADMIN_KPAY.phone}</p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleCopyPhone}
+                              className="ml-2 p-2 bg-white/10 hover:bg-white/20 transition-colors"
+                              title="Copy phone number"
+                            >
+                              {copied
+                                ? <CheckCircle2 size={14} className="text-green-400" />
+                                : <Copy size={14} className="text-blue-300" />}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* RIGHT — User Transaction Details */}
+                      <div className="bg-white p-8 flex flex-col gap-6">
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-blue-600 mb-1">Step 2</p>
+                          <p className="text-sm font-bold uppercase tracking-tight text-[#2C2926]">Enter Your Transfer Details</p>
+                          <p className="text-[10px] text-[#8B857A] mt-1">Fill in after completing the KBZ Pay transfer.</p>
+                        </div>
+
+                        <div className="space-y-5">
+                          {/* KPay Username */}
+                          <div className="space-y-2">
+                            <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
+                              <UserIcon size={10} /> Your KBZ Pay Username
+                            </Label>
+                            <Input
+                              required
+                              value={kpayData.username}
+                              onChange={(e) => setKpayData({ ...kpayData, username: e.target.value })}
+                              placeholder="e.g. John Doe"
+                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold transition-all placeholder:text-stone-300"
+                            />
+                          </div>
+
+                          {/* KPay Phone */}
+                          <div className="space-y-2">
+                            <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
+                              <Phone size={10} /> Your KBZ Pay Phone Number
+                            </Label>
+                            <Input
+                              required
+                              type="tel"
+                              value={kpayData.phone}
+                              onChange={(e) => setKpayData({ ...kpayData, phone: e.target.value })}
+                              placeholder="e.g. +959 9xx xxx xxx"
+                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold transition-all placeholder:text-stone-300"
+                            />
+                          </div>
+
+                          {/* Last 5 of Transaction No */}
+                          <div className="space-y-2">
+                            <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
+                              <Hash size={10} /> Last 5 Digits of Transaction No.
+                            </Label>
+                            <Input
+                              required
+                              maxLength={5}
+                              value={kpayData.transactionLast5}
+                              onChange={(e) => setKpayData({ ...kpayData, transactionLast5: e.target.value.replace(/\D/g, "").slice(0, 5) })}
+                              placeholder="e.g. 83921"
+                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold font-mono tracking-[0.3em] transition-all placeholder:text-stone-300 placeholder:tracking-normal placeholder:font-normal"
+                            />
+                            <p className="text-[9px] text-[#8B857A] font-medium">Find this in your KBZ Pay transaction receipt.</p>
+                          </div>
+
+                          {/* Transaction Time */}
+                          <div className="space-y-2">
+                            <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
+                              <Clock size={10} /> Transaction Time
+                            </Label>
+                            <Input
+                              required
+                              type="datetime-local"
+                              value={kpayData.transactionTime}
+                              onChange={(e) => setKpayData({ ...kpayData, transactionTime: e.target.value })}
+                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold transition-all"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Confirmation note */}
+                        <div className="flex items-start gap-3 p-4 bg-blue-50 border-l-4 border-blue-500 mt-auto">
+                          <ShieldCheck size={14} className="text-blue-600 shrink-0 mt-0.5" />
+                          <p className="text-[9px] text-blue-700 font-bold uppercase tracking-widest leading-relaxed">
+                            Your order will be confirmed after admin verifies the transaction.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </section>
 
               <div className="pt-10">

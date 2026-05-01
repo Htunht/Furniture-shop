@@ -15,6 +15,15 @@ import {
   X,
   Upload,
   Check,
+  CreditCard,
+  Smartphone,
+  Phone,
+  Hash,
+  Clock,
+  User as UserIcon,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -37,6 +46,10 @@ interface DashboardOrder {
   customerEmail: string;
   totalAmount: number | string;
   status: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  paymentDetails?: string | null;
+  address: string;
   createdAt: string;
   items: { id: string }[];
 }
@@ -295,6 +308,7 @@ export default function AdminDashboard() {
           },
           { id: "products", label: "Inventory", icon: <Package size={18} /> },
           { id: "orders", label: "Manifests", icon: <ShoppingBag size={18} /> },
+          { id: "accounts", label: "Accounts", icon: <CreditCard size={18} /> },
           { id: "users", label: "Architects", icon: <Users size={18} /> },
           {
             id: "store",
@@ -401,6 +415,7 @@ export default function AdminDashboard() {
               {activeTab === "overview" && "Intelligence."}
               {activeTab === "products" && "The Vault."}
               {activeTab === "orders" && "Timeline."}
+              {activeTab === "accounts" && "Accounts."}
               {activeTab === "users" && "Roster."}
             </h1>
           </motion.div>
@@ -952,6 +967,329 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Accounts Tab - Payment Verification */}
+        {activeTab === "accounts" && (
+          <div className="space-y-12">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  label: "Total Transactions",
+                  value: orders.length,
+                  icon: <CreditCard size={20} />,
+                  color: "bg-[#2C2926]",
+                },
+                {
+                  label: "KPay Payments",
+                  value: orders.filter((o) => o.paymentMethod?.toLowerCase() === "kpay").length,
+                  icon: <Smartphone size={20} />,
+                  color: "bg-blue-600",
+                },
+                {
+                  label: "Cash on Delivery",
+                  value: orders.filter((o) => o.paymentMethod?.toLowerCase() === "cod").length,
+                  icon: <ShoppingBag size={20} />,
+                  color: "bg-amber-600",
+                },
+                {
+                  label: "Verified Payments",
+                  value: orders.filter((o) => o.paymentStatus === "PAID").length,
+                  icon: <CheckCircle2 size={20} />,
+                  color: "bg-green-600",
+                },
+              ].map((stat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className="bg-white border border-[#E5E0D8] p-8 group hover:shadow-xl transition-all duration-500 hover:-translate-y-1 relative overflow-hidden"
+                >
+                  <div className={`absolute top-0 right-0 w-20 h-20 ${stat.color} opacity-[0.04] -mr-6 -mt-6 rotate-45`} />
+                  <div className={`w-10 h-10 ${stat.color} flex items-center justify-center text-white mb-6 shadow-md group-hover:scale-110 transition-transform`}>
+                    {stat.icon}
+                  </div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#8B857A] mb-2">{stat.label}</p>
+                  <h3 className="text-3xl font-black font-outfit">{stat.value}</h3>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Accounts Table */}
+            <div className="bg-white border border-[#E5E0D8] shadow-2xl overflow-hidden">
+              <div className="p-6 md:p-10 border-b border-[#E5E0D8] flex flex-col sm:flex-row justify-between sm:items-center bg-stone-50/50 gap-6">
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tight font-outfit">Payment Ledger</h3>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A] mt-1">
+                    {orders.filter((o) => o.paymentMethod?.toLowerCase() === "kpay").length} KPay transactions awaiting verification
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" className="flex-1 sm:flex-none h-10 rounded-none text-[9px] font-bold uppercase tracking-widest border-stone-200">
+                    Export Ledger
+                  </Button>
+                </div>
+              </div>
+
+              {/* Desktop Table */}
+              <div className="hidden lg:block overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-[#E5E0D8]">
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Order</th>
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Customer</th>
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Method</th>
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">KPay Details</th>
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Amount</th>
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Payment</th>
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {orders.map((order) => {
+                      let kpay: { username?: string; phone?: string; transactionLast5?: string; transactionTime?: string } | null = null;
+                      try { if (order.paymentDetails) kpay = JSON.parse(order.paymentDetails); } catch { /* ignore */ }
+                      return (
+                        <tr key={order.id} className="hover:bg-stone-50/80 transition-all group">
+                          <td className="p-6">
+                            <p className="text-sm font-black uppercase tracking-tight">#{order.orderNumber}</p>
+                            <p className="text-[9px] text-stone-400 font-bold uppercase tracking-widest mt-1">
+                              {new Date(order.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </p>
+                          </td>
+                          <td className="p-6">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 bg-stone-100 rounded-full flex items-center justify-center font-black text-xs text-stone-400 group-hover:bg-[#2C2926] group-hover:text-white transition-colors shrink-0">
+                                {order.customerName.charAt(0)}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-black uppercase tracking-tight truncate">{order.customerName}</p>
+                                <p className="text-[10px] text-[#8B857A] font-medium truncate">{order.customerEmail}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-6">
+                            <span className={`inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1.5 ${
+                              order.paymentMethod?.toLowerCase() === "kpay"
+                                ? "bg-blue-50 text-blue-700"
+                                : order.paymentMethod?.toLowerCase() === "ayapay"
+                                ? "bg-purple-50 text-purple-700"
+                                : "bg-amber-50 text-amber-700"
+                            }`}>
+                              {order.paymentMethod?.toLowerCase() === "kpay" ? <Smartphone size={11} /> : <CreditCard size={11} />}
+                              {order.paymentMethod?.toUpperCase() || "COD"}
+                            </span>
+                          </td>
+                          <td className="p-6">
+                            {kpay ? (
+                              <div className="space-y-1.5 max-w-[220px]">
+                                <div className="flex items-center gap-2">
+                                  <UserIcon size={10} className="text-blue-500 shrink-0" />
+                                  <span className="text-[10px] font-bold truncate">{kpay.username}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Phone size={10} className="text-blue-500 shrink-0" />
+                                  <span className="text-[10px] font-mono font-bold truncate">{kpay.phone}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Hash size={10} className="text-blue-500 shrink-0" />
+                                  <span className="text-[10px] font-mono font-black tracking-widest">•••{kpay.transactionLast5}</span>
+                                </div>
+                                {kpay.transactionTime && (
+                                  <div className="flex items-center gap-2">
+                                    <Clock size={10} className="text-blue-500 shrink-0" />
+                                    <span className="text-[10px] text-stone-500 font-medium">
+                                      {new Date(kpay.transactionTime).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-[9px] text-stone-300 font-bold uppercase tracking-widest">N/A</span>
+                            )}
+                          </td>
+                          <td className="p-6">
+                            <p className="text-base font-black font-outfit">${Number(order.totalAmount).toLocaleString()}</p>
+                          </td>
+                          <td className="p-6">
+                            <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.15em] px-3 py-1.5 ${
+                              order.paymentStatus === "PAID" ? "bg-green-100 text-green-700"
+                              : order.paymentStatus === "FAILED" ? "bg-red-100 text-red-700"
+                              : order.paymentStatus === "REFUNDED" ? "bg-violet-100 text-violet-700"
+                              : "bg-amber-100 text-amber-700"
+                            }`}>
+                              {order.paymentStatus === "PAID" ? <CheckCircle2 size={11} />
+                              : order.paymentStatus === "FAILED" ? <XCircle size={11} />
+                              : <AlertCircle size={11} />}
+                              {order.paymentStatus || "PENDING"}
+                            </span>
+                          </td>
+                          <td className="p-6">
+                            {order.paymentStatus !== "PAID" && order.paymentMethod?.toLowerCase() === "kpay" ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, order.status).then(() => {
+                                    fetch(`${ADMIN_API_BASE_URL}/orders/${order.id}`, {
+                                      method: "PATCH",
+                                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAuthToken()}` },
+                                      body: JSON.stringify({ status: order.status, paymentStatus: "PAID" }),
+                                      credentials: "include",
+                                    }).then(() => { toast.success("Payment Verified"); fetchOrders(); });
+                                  })}
+                                  className="w-9 h-9 bg-green-50 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all"
+                                  title="Verify Payment"
+                                >
+                                  <CheckCircle2 size={14} />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    fetch(`${ADMIN_API_BASE_URL}/orders/${order.id}`, {
+                                      method: "PATCH",
+                                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAuthToken()}` },
+                                      body: JSON.stringify({ status: order.status, paymentStatus: "FAILED" }),
+                                      credentials: "include",
+                                    }).then(() => { toast.error("Payment Rejected"); fetchOrders(); });
+                                  }}
+                                  className="w-9 h-9 bg-red-50 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all"
+                                  title="Reject Payment"
+                                >
+                                  <XCircle size={14} />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-[9px] text-stone-300 font-bold uppercase tracking-widest">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="lg:hidden divide-y divide-stone-100">
+                {orders.map((order) => {
+                  let kpay: { username?: string; phone?: string; transactionLast5?: string; transactionTime?: string } | null = null;
+                  try { if (order.paymentDetails) kpay = JSON.parse(order.paymentDetails); } catch { /* ignore */ }
+                  return (
+                    <div key={order.id} className="p-6 space-y-5">
+                      {/* Header row */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-sm font-black uppercase tracking-tight">#{order.orderNumber}</p>
+                          <p className="text-[9px] text-stone-400 font-bold uppercase tracking-widest mt-1">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <p className="text-xl font-black font-outfit">${Number(order.totalAmount).toLocaleString()}</p>
+                      </div>
+
+                      {/* Customer */}
+                      <div className="flex items-center gap-3 py-3 border-y border-stone-50">
+                        <div className="w-10 h-10 bg-[#2C2926] text-white rounded-full flex items-center justify-center font-black text-xs">
+                          {order.customerName.charAt(0)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-black uppercase tracking-tight truncate">{order.customerName}</p>
+                          <p className="text-[10px] text-[#8B857A] font-medium truncate">{order.customerEmail}</p>
+                        </div>
+                      </div>
+
+                      {/* Payment Method & Status */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest mb-1">METHOD</p>
+                          <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.1em] px-2 py-1 ${
+                            order.paymentMethod?.toLowerCase() === "kpay" ? "bg-blue-50 text-blue-700"
+                            : order.paymentMethod?.toLowerCase() === "ayapay" ? "bg-purple-50 text-purple-700"
+                            : "bg-amber-50 text-amber-700"
+                          }`}>
+                            {order.paymentMethod?.toLowerCase() === "kpay" ? <Smartphone size={10} /> : <CreditCard size={10} />}
+                            {order.paymentMethod?.toUpperCase() || "COD"}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-[8px] font-black text-stone-400 uppercase tracking-widest mb-1">STATUS</p>
+                          <span className={`inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.1em] px-2 py-1 ${
+                            order.paymentStatus === "PAID" ? "bg-green-100 text-green-700"
+                            : order.paymentStatus === "FAILED" ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {order.paymentStatus === "PAID" ? <CheckCircle2 size={10} /> : <AlertCircle size={10} />}
+                            {order.paymentStatus || "PENDING"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* KPay Details */}
+                      {kpay && (
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-5 space-y-3 border-l-4 border-blue-500">
+                          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 mb-3">KBZ Pay Transaction</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Username</p>
+                              <p className="text-xs font-bold text-[#2C2926]">{kpay.username}</p>
+                            </div>
+                            <div>
+                              <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Phone</p>
+                              <p className="text-xs font-bold font-mono text-[#2C2926]">{kpay.phone}</p>
+                            </div>
+                            <div>
+                              <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Txn ID</p>
+                              <p className="text-xs font-black font-mono tracking-widest text-[#2C2926]">•••{kpay.transactionLast5}</p>
+                            </div>
+                            {kpay.transactionTime && (
+                              <div>
+                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Time</p>
+                                <p className="text-xs font-medium text-[#2C2926]">
+                                  {new Date(kpay.transactionTime).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      {order.paymentStatus !== "PAID" && order.paymentMethod?.toLowerCase() === "kpay" && (
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            onClick={() => {
+                              fetch(`${ADMIN_API_BASE_URL}/orders/${order.id}`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAuthToken()}` },
+                                body: JSON.stringify({ status: order.status, paymentStatus: "PAID" }),
+                                credentials: "include",
+                              }).then(() => { toast.success("Payment Verified"); fetchOrders(); });
+                            }}
+                            className="h-12 bg-green-50 text-green-700 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all"
+                          >
+                            <CheckCircle2 size={14} /> Verify
+                          </button>
+                          <button
+                            onClick={() => {
+                              fetch(`${ADMIN_API_BASE_URL}/orders/${order.id}`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json", Authorization: `Bearer ${getAuthToken()}` },
+                                body: JSON.stringify({ status: order.status, paymentStatus: "FAILED" }),
+                                credentials: "include",
+                              }).then(() => { toast.error("Payment Rejected"); fetchOrders(); });
+                            }}
+                            className="h-12 bg-red-50 text-red-700 flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
+                          >
+                            <XCircle size={14} /> Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}

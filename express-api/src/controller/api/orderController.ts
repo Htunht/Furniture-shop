@@ -12,6 +12,7 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
     total,
     address,
     paymentMethod,
+    paymentDetails,
     orderTime,
   } = req.body;
   const userId = (req as any).session?.user?.id;
@@ -30,6 +31,7 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
         userId: userId || null,
         totalAmount: total,
         paymentMethod: paymentMethod || "COD",
+        paymentDetails: paymentDetails || null,
         address: address || "Address not specified",
         customerName,
         customerEmail: email,
@@ -108,5 +110,42 @@ export const trackOrder = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error tracking order:", error);
     res.status(500).json({ error: "Failed to track order" });
+  }
+};
+
+export const getOrders = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).session?.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const normalizedOrders = orders.map((order) => ({
+      ...order,
+      items: order.items.map((item) => ({
+        ...item,
+        image: item.product?.imageUrl
+          ? `http://localhost:8080${item.product.imageUrl}`
+          : null,
+      })),
+    }));
+
+    res.json(normalizedOrders);
+  } catch (error) {
+    console.error("Error fetching user orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 };
