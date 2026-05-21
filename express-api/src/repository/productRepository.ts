@@ -54,6 +54,7 @@ export const createProduct = async (data: any) => {
     price: data.price,
     discount: data.discount,
     inventory: data.inventory,
+    imageUrl: data.imageUrl,
     category: {
       connectOrCreate: {
         where: { name: data.category },
@@ -67,7 +68,7 @@ export const createProduct = async (data: any) => {
       },
     },
     images: {
-      create: data.images?.map((url: string) => ({ url })) || [],
+      create: data.imageUrl ? [{ url: data.imageUrl }] : [],
     },
   };
 

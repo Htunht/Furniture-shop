@@ -20,6 +20,9 @@ export const auth = betterAuth({
       gender: {
         type: "string",
       },
+      admin: {
+        type: "boolean",
+      },
     },
   },
   emailAndPassword: {

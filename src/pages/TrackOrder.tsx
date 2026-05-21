@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
+import { getImageSrc } from "@/lib/utils";
 
 const defaultOrderSteps = [
   {
@@ -91,7 +92,7 @@ export default function TrackOrderPage() {
             updatedAt: data.updatedAt,
             items: data.items.map((i: any) => ({
               name: i.name,
-              image: i.product?.imageUrl ? (i.product.imageUrl.startsWith("http") ? i.product.imageUrl : `http://localhost:8080${i.product.imageUrl.startsWith("/") ? "" : "/"}${i.product.imageUrl}`) : "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80",
+              image: getImageSrc(i.product?.imageUrl),
               quantity: i.quantity,
               discount: i.price,
             }))

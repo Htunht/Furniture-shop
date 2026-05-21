@@ -91,6 +91,9 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
 export const trackOrder = async (req: Request, res: Response) => {
   try {
     const { orderNumber } = req.params;
+    if (!orderNumber || typeof orderNumber !== "string") {
+      return res.status(400).json({ error: "Invalid order number" });
+    }
     const order = await prisma.order.findUnique({
       where: { orderNumber },
       include: {

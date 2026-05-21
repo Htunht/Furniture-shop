@@ -6,6 +6,7 @@ import { useWishlistStore } from "@/store/useWishlistStore"; // Import Wishlist
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
+import { getImageSrc } from "@/lib/utils";
 
 interface ProductCardProps {
   product: {
@@ -19,6 +20,7 @@ interface ProductCardProps {
     category: { name: string };
     type: { name: string };
     isFavorite: boolean;
+    imageUrl?: string | null;
   };
 }
 
@@ -31,9 +33,9 @@ export function ProductCard({ product }: ProductCardProps) {
   const isFavoriteLocal = isInWishlist(product.id);
   // ------------------------------
 
-  const imageUrl =
-    product.images?.[0]?.url ||
-    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80";
+  const rawImageUrl = product.images?.[0]?.url || product.imageUrl;
+  const imageUrl = getImageSrc(rawImageUrl);
+
   const hasDiscount = Number(product.discount) < Number(product.price);
 
   // Existing Mutation for Database Sync

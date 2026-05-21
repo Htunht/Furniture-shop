@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
+import { getImageSrc, IMAGE_FALLBACK_SRC } from "@/lib/utils";
 
 interface Stats {
   totalProducts: number;
@@ -81,18 +82,7 @@ interface SessionWithToken {
   token?: string;
 }
 
-const API_BASE_URL = "http://localhost:8080";
-const ADMIN_API_BASE_URL = `${API_BASE_URL}/api/v1/admin`;
-const IMAGE_FALLBACK_SRC =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='480' viewBox='0 0 640 480'%3E%3Crect width='640' height='480' fill='%23f5f5f4'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%238b857a' font-family='Arial,sans-serif' font-size='24'%3EImage unavailable%3C/text%3E%3C/svg%3E";
-
-const getImageSrc = (imageUrl?: string | null) => {
-  if (!imageUrl) return IMAGE_FALLBACK_SRC;
-  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-    return imageUrl;
-  }
-  return `${API_BASE_URL}${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
-};
+const ADMIN_API_BASE_URL = `http://localhost:8080/api/v1/admin`;
 
 export default function AdminDashboard() {
   const { data: session, isPending: sessionLoading } = useSession();
