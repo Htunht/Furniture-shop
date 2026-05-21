@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Star, Heart, Plus } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import { useWishlistStore } from "@/store/useWishlistStore"; // Import Wishlist
@@ -103,94 +101,114 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="group overflow-hidden rounded-3xl border-none bg-card shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2">
-      <div className="relative aspect-[4/5] overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
-        />
-
-        {/* Badges */}
-        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-          <span className="rounded-full bg-background/90 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary">
-            {product.type.name}
-          </span>
-          {hasDiscount && (
-            <span className="rounded-full bg-primary px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-              Sale
-            </span>
-          )}
-        </div>
-
-        {/* Fixed Favorite Button: Merged Logic */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleToggleFavorite}
-          className={`absolute top-4 right-4 z-10 h-10 w-10 rounded-full backdrop-blur-md shadow-sm transition-all duration-300 ${
-            isFavoriteLocal
-              ? "bg-red-50 text-red-500 hover:bg-red-100"
-              : "bg-background/60 text-foreground hover:bg-background hover:text-red-500"
-          }`}
-        >
-          <Heart
-            className={`h-5 w-5 ${isFavoriteLocal ? "fill-current" : ""}`}
+    <div className="relative group h-full">
+      {/* Shadow layer offset */}
+      <div className="absolute inset-0 bg-[#E5E0D8] translate-x-2 translate-y-2 transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+      
+      {/* Main Card */}
+      <article className="relative bg-[#F9F8F6] border border-[#2C2926]/10 p-3 h-full flex flex-col justify-between transition-transform duration-300 group-hover:-translate-x-1 group-hover:-translate-y-1">
+        
+        {/* Image wrapper */}
+        <div className="relative aspect-[4/5] overflow-hidden bg-[#EBE7DF] border border-[#2C2926]/5">
+          <img
+            src={imageUrl}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105"
           />
-        </Button>
 
-        {/* Overlay Add Button (Desktop) */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 transition-all duration-500 group-hover:opacity-100 hidden md:flex">
-          <Button
-            onClick={handleAddToCart}
-            className="rounded-full bg-primary px-8 py-6 font-bold shadow-2xl"
+          {/* Badges */}
+          <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+            <span className="bg-[#F9F8F6]/90 backdrop-blur-sm px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[#2C2926] border border-[#2C2926]/10">
+              {product.type.name}
+            </span>
+            {hasDiscount && (
+              <span className="bg-[#2C2926] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-[#F9F8F6]">
+                Sale
+              </span>
+            )}
+          </div>
+
+          {/* Favorite Button */}
+          <button
+            type="button"
+            onClick={handleToggleFavorite}
+            className={`absolute top-3 right-3 z-10 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 border border-[#2C2926]/10 shadow-sm ${
+              isFavoriteLocal
+                ? "bg-red-500 border-red-500 text-white hover:bg-red-600 hover:border-red-600"
+                : "bg-[#F9F8F6]/90 backdrop-blur-sm text-[#2C2926] hover:bg-[#2C2926] hover:text-white"
+            }`}
+            aria-label={isFavoriteLocal ? "Remove from wishlist" : "Add to wishlist"}
           >
-            Add to Cart
-          </Button>
-        </div>
-      </div>
+            <Heart className={`h-4 w-4 ${isFavoriteLocal ? "fill-current" : ""}`} />
+          </button>
 
-      <CardContent className="p-6">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
-            {product.category.name}
-          </span>
-          <div className="flex items-center gap-0.5">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`h-3 w-3 ${i < product.rating ? "fill-primary text-primary" : "fill-muted text-muted"}`}
-              />
-            ))}
+          {/* Image Overlay Hover Button (Desktop) */}
+          <div className="absolute inset-0 bg-[#2C2926]/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-4 hidden md:flex">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="w-full bg-[#F9F8F6] text-[#2C2926] hover:bg-[#2C2926] hover:text-[#F9F8F6] font-bold text-[10px] uppercase tracking-[0.2em] py-3.5 border border-[#2C2926]/10 shadow-lg transition-all duration-300 transform translate-y-4 group-hover:translate-y-0"
+            >
+              Add to Cart
+            </button>
           </div>
         </div>
-        <h3 className="text-lg font-bold leading-tight line-clamp-1">
-          {product.name}
-        </h3>
-        <p className="mt-2.5 text-[13px] text-muted-foreground/80 line-clamp-2">
-          {product.description}
-        </p>
-      </CardContent>
 
-      <CardFooter className="px-6 pb-6 pt-0 flex items-center justify-between">
-        <div className="flex flex-col">
-          {hasDiscount && (
-            <span className="text-[11px] font-bold text-muted-foreground line-through opacity-60">
-              ${Number(product.price).toLocaleString()}
-            </span>
-          )}
-          <span className="text-xl font-black text-foreground">
-            ${Number(product.discount).toLocaleString()}
-          </span>
+        {/* Content details */}
+        <div className="pt-4 pb-1 flex-grow flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8B857A]">
+                {product.category.name}
+              </span>
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-3 w-3 ${
+                      i < product.rating
+                        ? "fill-[#2C2926] text-[#2C2926]"
+                        : "fill-transparent text-[#E5E0D8]"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            <h3 className="font-outfit text-base font-bold uppercase tracking-tight text-[#2C2926] line-clamp-1 group-hover:text-[#8B857A] transition-colors">
+              {product.name}
+            </h3>
+            
+            <p className="text-[11px] text-[#5C574F] font-medium line-clamp-2 leading-relaxed mt-1.5">
+              {product.description}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-[#E5E0D8]">
+            <div className="flex flex-col">
+              {hasDiscount && (
+                <span className="text-[10px] font-bold text-[#8B857A] line-through leading-none mb-1">
+                  ${Number(product.price).toLocaleString()}
+                </span>
+              )}
+              <span className="text-base font-extrabold text-[#2C2926] font-outfit leading-none">
+                ${Number(product.discount).toLocaleString()}
+              </span>
+            </div>
+            
+            {/* Quick Add Button (visible on mobile, and falls back to reveal on hover/focus if desired, but hidden on desktop by default) */}
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              className="h-8 px-3 bg-[#2C2926] text-[#F9F8F6] hover:bg-stone-700 text-[10px] font-bold uppercase tracking-widest transition-all md:hidden items-center justify-center flex gap-1.5"
+            >
+              <Plus className="h-3 w-3" />
+              <span>Add</span>
+            </button>
+          </div>
         </div>
-        <Button
-          size="icon"
-          onClick={handleAddToCart}
-          className="h-12 w-12 rounded-2xl bg-secondary md:hidden group-hover:md:flex"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      </CardFooter>
-    </Card>
+
+      </article>
+    </div>
   );
 }
