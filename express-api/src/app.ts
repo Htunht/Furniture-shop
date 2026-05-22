@@ -34,7 +34,9 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again after 15 minutes",
 });
 
-app.use(limiter);
+if (process.env.NODE_ENV !== "development") {
+  app.use(limiter);
+}
 
 app.all("/api/auth/*splat", toNodeHandler(auth)); // api/auth ထဲက အကုန် တာဝန်ယူမယ်
 

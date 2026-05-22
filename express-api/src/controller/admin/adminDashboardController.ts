@@ -153,14 +153,28 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 
   try {
-    // 1. Find product to get its image path for cleanup
+    // 1. Find product
     const product = await prisma.product.findUnique({ where: { id } });
     
     if (!product) {
       return res.status(404).json({ error: "Design not found" });
     }
 
-    // 2. Delete associated image file from disk
+    // 2. Check if product is referenced in any orders
+    const orderItemsCount = await prisma.orderItem.count({
+      where: { productId: id },
+    });
+
+    if (orderItemsCount > 0) {
+      // Soft delete: Archive the product
+      await prisma.product.update({
+        where: { id },
+        data: { status: "ARCHIVED" },
+      });
+      return res.json({ message: "Design archived (retains transaction history)." });
+    }
+
+    // 3. Delete associated image file from disk (only if hard deleting)
     if (product.imageUrl) {
       const fileName = product.imageUrl.split("/").pop();
       if (fileName) {
@@ -172,7 +186,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
       }
     }
 
-    // 3. Delete from database
+    // 4. Hard delete from database
     await prisma.product.delete({ where: { id } });
     
     res.json({ message: "Design decommissioned and physical files purged." });

@@ -26,7 +26,7 @@ export const createProduct = [
         name,
         description,
         price: parseFloat(price),
-        discount: discount ? parseFloat(discount) : 0,
+        discount: discount ? parseFloat(discount) : parseFloat(price),
         inventory: parseInt(inventory, 10),
         category,
         type,
@@ -71,7 +71,15 @@ export const updateProduct = async (req: Request, res: Response) => {
         ...(parsedInventory !== undefined && !isNaN(parsedInventory)
           ? { inventory: parsedInventory }
           : {}),
-        ...(imageUrl ? { imageUrl } : {}),
+        ...(imageUrl
+          ? {
+              imageUrl,
+              images: {
+                deleteMany: {}, // Clean up existing image references
+                create: [{ url: imageUrl }], // Add the new image reference
+              },
+            }
+          : {}),
         ...(category
           ? {
               category: {

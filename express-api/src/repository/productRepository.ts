@@ -19,7 +19,10 @@ export const getPaginatedProducts = async (
   const query: any = {
     take: limit,
     orderBy: { id: "asc" },
-    where: category ? { category: { name: category } } : {},
+    where: {
+      status: "PUBLISHED",
+      ...(category ? { category: { name: category } } : {}),
+    },
     include: {
       category: true,
       type: true,
