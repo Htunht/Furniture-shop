@@ -104,10 +104,10 @@ export function ProductCard({ product }: ProductCardProps) {
     <div className="relative group h-full">
       {/* Shadow layer offset */}
       <div className="absolute inset-0 bg-[#E5E0D8] translate-x-2 translate-y-2 transition-transform duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
-      
+
       {/* Main Card */}
       <article className="relative bg-[#F9F8F6] border border-[#2C2926]/10 p-3 h-full flex flex-col justify-between transition-transform duration-300 group-hover:-translate-x-1 group-hover:-translate-y-1">
-        
+
         {/* Image wrapper */}
         <div className="relative aspect-[4/5] overflow-hidden bg-[#EBE7DF] border border-[#2C2926]/5">
           <img
@@ -132,11 +132,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <button
             type="button"
             onClick={handleToggleFavorite}
-            className={`absolute top-3 right-3 z-10 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 border border-[#2C2926]/10 shadow-sm ${
-              isFavoriteLocal
-                ? "bg-red-500 border-red-500 text-white hover:bg-red-600 hover:border-red-600"
-                : "bg-[#F9F8F6]/90 backdrop-blur-sm text-[#2C2926] hover:bg-[#2C2926] hover:text-white"
-            }`}
+            className={`absolute top-3 right-3 z-10 h-8 w-8 rounded-full flex items-center justify-center transition-all duration-300 border border-[#2C2926]/10 shadow-sm ${isFavoriteLocal
+              ? "bg-red-500 border-red-500 text-white hover:bg-red-600 hover:border-red-600"
+              : "bg-[#F9F8F6]/90 backdrop-blur-sm text-[#2C2926] hover:bg-[#2C2926] hover:text-white"
+              }`}
             aria-label={isFavoriteLocal ? "Remove from wishlist" : "Add to wishlist"}
           >
             <Heart className={`h-4 w-4 ${isFavoriteLocal ? "fill-current" : ""}`} />
@@ -165,20 +164,19 @@ export function ProductCard({ product }: ProductCardProps) {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-3 w-3 ${
-                      i < product.rating
-                        ? "fill-[#2C2926] text-[#2C2926]"
-                        : "fill-transparent text-[#E5E0D8]"
-                    }`}
+                    className={`h-3 w-3 ${i < product.rating
+                      ? "fill-[#2C2926] text-[#2C2926]"
+                      : "fill-transparent text-[#E5E0D8]"
+                      }`}
                   />
                 ))}
               </div>
             </div>
-            
+
             <h3 className="font-outfit text-base font-bold uppercase tracking-tight text-[#2C2926] line-clamp-1 group-hover:text-[#8B857A] transition-colors">
               {product.name}
             </h3>
-            
+
             <p className="text-[11px] text-[#5C574F] font-medium line-clamp-2 leading-relaxed mt-1.5">
               {product.description}
             </p>
@@ -195,7 +193,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 ${Number(product.discount).toLocaleString()}
               </span>
             </div>
-            
+
             {/* Quick Add Button (visible on mobile, and falls back to reveal on hover/focus if desired, but hidden on desktop by default) */}
             <button
               type="button"
