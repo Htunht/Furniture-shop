@@ -2,9 +2,19 @@ import { Request, Response } from "express";
 import { sendEmail } from "../../lib/email";
 import { getOrderConfirmationEmailHtml } from "../../lib/order-template";
 import prisma from "../../lib/prisma";
+import config from "../../config";
+
+const getAbsoluteImageUrl = (product: any) => {
+  const rawUrl = product?.images?.[0]?.url || product?.imageUrl;
+  if (!rawUrl) return null;
+  if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+    return rawUrl;
+  }
+  return `${config.backendUrl}${rawUrl.startsWith("/") ? rawUrl : "/" + rawUrl}`;
+};
 
 export const sendOrderConfirmation = async (req: Request, res: Response) => {
-  const {
+  let {
     email,
     customerName,
     orderNumber,
@@ -12,12 +22,21 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
     total,
     address,
     paymentMethod,
-    paymentDetails,
     orderTime,
   } = req.body;
   const userId = (req as any).session?.user?.id;
 
-  if (!email || !customerName || !orderNumber || !items || !total) {
+  if (typeof items === "string") {
+    try {
+      items = JSON.parse(items);
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid items format" });
+    }
+  }
+
+  const parsedTotal = parseFloat(total);
+
+  if (!email || !customerName || !orderNumber || !items || isNaN(parsedTotal)) {
     return res
       .status(400)
       .json({ error: "Missing required order information" });
@@ -29,9 +48,11 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
       data: {
         orderNumber,
         userId: userId || null,
-        totalAmount: total,
+        totalAmount: parsedTotal,
         paymentMethod: paymentMethod || "COD",
-        paymentDetails: paymentDetails || null,
+        paymentDetails: req.file
+          ? JSON.stringify({ slipUrl: `/uploads/${req.file.filename}` })
+          : null,
         address: address || "Address not specified",
         customerName,
         customerEmail: email,
@@ -99,7 +120,11 @@ export const trackOrder = async (req: Request, res: Response) => {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                images: true,
+              },
+            },
           },
         },
       },
@@ -109,7 +134,15 @@ export const trackOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    res.json(order);
+    const normalizedItems = order.items.map((item) => ({
+      ...item,
+      image: getAbsoluteImageUrl(item.product),
+    }));
+
+    res.json({
+      ...order,
+      items: normalizedItems,
+    });
   } catch (error) {
     console.error("Error tracking order:", error);
     res.status(500).json({ error: "Failed to track order" });
@@ -129,7 +162,11 @@ export const getOrders = async (req: Request, res: Response) => {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                images: true,
+              },
+            },
           },
         },
       },
@@ -140,9 +177,7 @@ export const getOrders = async (req: Request, res: Response) => {
       ...order,
       items: order.items.map((item) => ({
         ...item,
-        image: item.product?.imageUrl
-          ? `http://localhost:8080${item.product.imageUrl}`
-          : null,
+        image: getAbsoluteImageUrl(item.product),
       })),
     }));
 

@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { getImageSrc } from "@/lib/utils";
+import { getImageSrc, API_BASE_URL } from "@/lib/utils";
 
 const defaultOrderSteps = [
   {
@@ -76,7 +76,7 @@ export default function TrackOrderPage() {
     const fetchOrder = async () => {
       if (!orderId) return;
       try {
-        const res = await fetch(`http://localhost:8080/api/v1/order/track/${orderId.replace("#", "")}`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/order/track/${orderId.replace("#", "")}`);
         if (res.ok) {
           const data = await res.json();
           setOrderData({
@@ -92,7 +92,7 @@ export default function TrackOrderPage() {
             updatedAt: data.updatedAt,
             items: data.items.map((i: any) => ({
               name: i.name,
-              image: getImageSrc(i.product?.imageUrl),
+              image: i.image || getImageSrc(i.product?.imageUrl),
               quantity: i.quantity,
               discount: i.price,
             }))

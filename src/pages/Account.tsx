@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { motion } from "framer-motion";
+import { API_BASE_URL } from "@/lib/utils";
 
 export default function AccountPage() {
   const { data: session, isPending } = useSession();
@@ -35,7 +36,7 @@ export default function AccountPage() {
 
   const fetchUserOrders = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/v1/orders", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/orders`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("better-auth.session_token") || ""}`,
         },

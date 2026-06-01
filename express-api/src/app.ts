@@ -6,6 +6,7 @@ import router from "./routes";
 import rateLimit from "express-rate-limit";
 import fs from "fs";
 import path from "path";
+import config from "./config";
 
 const app = express();
 
@@ -20,9 +21,11 @@ app.use("/uploads", express.static(uploadsDir));
 // Configure CORS middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // Replace with your frontend's origin
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Specify allowed HTTP methods
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    origin: config.frontendUrl.includes(",") 
+      ? config.frontendUrl.split(",") 
+      : config.frontendUrl,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
   }),
 );
 

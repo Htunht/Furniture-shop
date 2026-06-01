@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "@/lib/auth-client";
 import { useCartStore } from "@/store/useCartStore";
 import { Button } from "@/components/ui/button";
@@ -15,14 +15,14 @@ import {
   Wallet,
   Copy,
   CheckCircle2,
-  Clock,
-  Hash,
   User as UserIcon,
   Phone,
   QrCode,
+  Upload,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { Spinner } from "@/components/ui/spinner";
+import { API_BASE_URL } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const { data: session, isPending } = useSession();
@@ -31,12 +31,21 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [copied, setCopied] = useState(false);
-  const [kpayData, setKpayData] = useState({
-    username: "",
-    phone: "",
-    transactionLast5: "",
-    transactionTime: "",
-  });
+  const [kpaySlip, setKpaySlip] = useState<File | null>(null);
+  const [kpaySlipPreview, setKpaySlipPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!kpaySlip) {
+      setKpaySlipPreview(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(kpaySlip);
+    setKpaySlipPreview(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [kpaySlip]);
 
   const ADMIN_KPAY = {
     name: "Tiger Balm Store",
@@ -70,10 +79,7 @@ export default function CheckoutPage() {
 
     // Validate KPay fields
     if (paymentMethod === "kpay") {
-      if (!kpayData.username.trim()) return toast.error("Please enter your KBZ Pay username.");
-      if (!kpayData.phone.trim()) return toast.error("Please enter your KBZ Pay phone number.");
-      if (kpayData.transactionLast5.trim().length !== 5) return toast.error("Please enter the last 5 digits of your Transaction No.");
-      if (!kpayData.transactionTime.trim()) return toast.error("Please enter the Transaction Time.");
+      if (!kpaySlip) return toast.error("Please upload your KBZ Pay transfer slip image.");
     }
 
     setLoading(true);
@@ -81,33 +87,44 @@ export default function CheckoutPage() {
     try {
       const orderNumber = `TB-${Math.floor(100000 + Math.random() * 900000)}`;
 
-      // Call the order confirmation email API
-      const response = await fetch("http://localhost:8080/api/v1/order/confirm", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("better-auth.session_token") || ""}`,
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          customerName: `${formData.firstName} ${formData.lastName}`,
-          orderNumber,
-          items: items.map((item) => ({
+      const orderData = new FormData();
+      orderData.append("email", formData.email);
+      orderData.append("customerName", `${formData.firstName} ${formData.lastName}`);
+      orderData.append("orderNumber", orderNumber);
+      orderData.append(
+        "items",
+        JSON.stringify(
+          items.map((item) => ({
             productId: item.id,
             name: item.name,
             quantity: item.quantity,
             discount: item.discount,
-          })),
-          total: total,
-          address: `${formData.street}, ${formData.city}, ${formData.country}`,
-          paymentMethod: paymentMethod,
-          paymentDetails: paymentMethod === "kpay" ? JSON.stringify(kpayData) : undefined,
-          orderTime: new Date().toLocaleString('en-US', { 
-            dateStyle: 'medium', 
-            timeStyle: 'short' 
-          }),
-        }),
+          }))
+        )
+      );
+      orderData.append("total", total.toString());
+      orderData.append("address", `${formData.street}, ${formData.city}, ${formData.country}`);
+      orderData.append("paymentMethod", paymentMethod);
+      orderData.append(
+        "orderTime",
+        new Date().toLocaleString("en-US", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      );
+
+      if (paymentMethod === "kpay" && kpaySlip) {
+        orderData.append("slip", kpaySlip);
+      }
+
+      // Call the order confirmation email API
+      const response = await fetch(`${API_BASE_URL}/api/v1/order/confirm`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("better-auth.session_token") || ""}`,
+        },
+        body: orderData,
       });
 
       if (!response.ok) {
@@ -439,68 +456,54 @@ export default function CheckoutPage() {
                       <div className="bg-white p-8 flex flex-col gap-6">
                         <div>
                           <p className="text-[9px] font-black uppercase tracking-[0.4em] text-blue-600 mb-1">Step 2</p>
-                          <p className="text-sm font-bold uppercase tracking-tight text-[#2C2926]">Enter Your Transfer Details</p>
-                          <p className="text-[10px] text-[#8B857A] mt-1">Fill in after completing the KBZ Pay transfer.</p>
+                          <p className="text-sm font-bold uppercase tracking-tight text-[#2C2926]">Upload Transfer Slip</p>
+                          <p className="text-[10px] text-[#8B857A] mt-1">Upload the payment screenshot/receipt after your transfer.</p>
                         </div>
 
                         <div className="space-y-5">
-                          {/* KPay Username */}
                           <div className="space-y-2">
                             <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
-                              <UserIcon size={10} /> Your KBZ Pay Username
+                              Payment Receipt / Slip Screenshot
                             </Label>
-                            <Input
-                              required
-                              value={kpayData.username}
-                              onChange={(e) => setKpayData({ ...kpayData, username: e.target.value })}
-                              placeholder="e.g. John Doe"
-                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold transition-all placeholder:text-stone-300"
-                            />
-                          </div>
-
-                          {/* KPay Phone */}
-                          <div className="space-y-2">
-                            <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
-                              <Phone size={10} /> Your KBZ Pay Phone Number
-                            </Label>
-                            <Input
-                              required
-                              type="tel"
-                              value={kpayData.phone}
-                              onChange={(e) => setKpayData({ ...kpayData, phone: e.target.value })}
-                              placeholder="e.g. +959 9xx xxx xxx"
-                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold transition-all placeholder:text-stone-300"
-                            />
-                          </div>
-
-                          {/* Last 5 of Transaction No */}
-                          <div className="space-y-2">
-                            <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
-                              <Hash size={10} /> Last 5 Digits of Transaction No.
-                            </Label>
-                            <Input
-                              required
-                              maxLength={5}
-                              value={kpayData.transactionLast5}
-                              onChange={(e) => setKpayData({ ...kpayData, transactionLast5: e.target.value.replace(/\D/g, "").slice(0, 5) })}
-                              placeholder="e.g. 83921"
-                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold font-mono tracking-[0.3em] transition-all placeholder:text-stone-300 placeholder:tracking-normal placeholder:font-normal"
-                            />
-                            <p className="text-[9px] text-[#8B857A] font-medium">Find this in your KBZ Pay transaction receipt.</p>
-                          </div>
-
-                          {/* Transaction Time */}
-                          <div className="space-y-2">
-                            <Label className="text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A] flex items-center gap-2">
-                              <Clock size={10} /> Transaction Time
-                            </Label>
-                            <Input
-                              required
-                              type="datetime-local"
-                              value={kpayData.transactionTime}
-                              onChange={(e) => setKpayData({ ...kpayData, transactionTime: e.target.value })}
-                              className="rounded-none border-0 border-b-2 border-[#E5E0D8] bg-transparent focus-visible:ring-0 focus-visible:border-blue-500 px-0 h-12 text-base font-bold transition-all"
-                            />
+                            <div className="border-2 border-dashed border-[#E5E0D8] p-8 text-center cursor-pointer hover:border-blue-500 transition-colors relative group min-h-[250px] flex items-center justify-center bg-stone-50/50">
+                              <input
+                                required
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    setKpaySlip(e.target.files[0]);
+                                  }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                              />
+                              {kpaySlipPreview ? (
+                                <div className="space-y-4 flex flex-col items-center w-full relative z-0">
+                                  <div className="relative w-full max-w-[200px] h-[200px] border border-stone-200 overflow-hidden bg-white shadow-md flex items-center justify-center">
+                                    <img
+                                      src={kpaySlipPreview}
+                                      alt="Payment Slip Preview"
+                                      className="w-full h-full object-contain"
+                                    />
+                                    <div className="absolute inset-0 bg-[#2C2926]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
+                                      <Upload className="h-6 w-6 text-white" />
+                                      <p className="text-[9px] font-black uppercase tracking-widest">Replace Slip</p>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-[#2C2926] truncate max-w-[240px]">{kpaySlip?.name}</p>
+                                    <p className="text-[9px] text-green-600 font-bold uppercase tracking-widest mt-1">✓ Upload Completed</p>
+                                    <p className="text-[8px] text-[#8B857A] uppercase tracking-wider mt-0.5">Click or drag to change image</p>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <Upload className="mx-auto h-8 w-8 text-[#8B857A] group-hover:text-blue-500 transition-colors" />
+                                  <p className="text-xs font-bold text-[#2C2926]">Select KPay Slip Image</p>
+                                  <p className="text-[9px] text-[#8B857A] uppercase">JPEG, PNG up to 5MB</p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
 

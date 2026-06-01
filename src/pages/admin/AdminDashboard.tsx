@@ -17,10 +17,6 @@ import {
   Check,
   CreditCard,
   Smartphone,
-  Phone,
-  Hash,
-  Clock,
-  User as UserIcon,
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -29,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import { motion, AnimatePresence } from "framer-motion";
-import { getImageSrc, IMAGE_FALLBACK_SRC } from "@/lib/utils";
+import { getImageSrc, IMAGE_FALLBACK_SRC, API_BASE_URL } from "@/lib/utils";
 
 interface Stats {
   totalProducts: number;
@@ -82,7 +78,7 @@ interface SessionWithToken {
   token?: string;
 }
 
-const ADMIN_API_BASE_URL = `http://localhost:8080/api/v1/admin`;
+const ADMIN_API_BASE_URL = `${API_BASE_URL}/api/v1/admin`;
 
 export default function AdminDashboard() {
   const { data: session, isPending: sessionLoading } = useSession();
@@ -97,6 +93,21 @@ export default function AdminDashboard() {
     null,
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
+
+  useEffect(() => {
+    if (!selectedImageFile) {
+      setSelectedImagePreview(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(selectedImageFile);
+    setSelectedImagePreview(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [selectedImageFile]);
 
   const getAuthToken = () => {
     const sessionData = session as SessionWithToken | null;
@@ -723,12 +734,19 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  {orders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-stone-50/80 transition-all group"
-                    >
-                      <td className="p-8">
+                  {orders.map((order) => {
+                    let kpay: { slipUrl?: string } | null = null;
+                    try {
+                      if (order.paymentDetails) kpay = JSON.parse(order.paymentDetails);
+                    } catch {
+                      /* ignore */
+                    }
+                    return (
+                      <tr
+                        key={order.id}
+                        className="hover:bg-stone-50/80 transition-all group"
+                      >
+                        <td className="p-8">
                         <p className="text-sm font-black uppercase tracking-tight group-hover:translate-x-1 transition-transform inline-block">
                           #{order.orderNumber}
                         </p>
@@ -783,21 +801,37 @@ export default function AdminDashboard() {
                         </select>
                       </td>
                       <td className="p-8">
-                        <button className="flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#8B857A] hover:text-[#2C2926] transition-colors border-b border-transparent hover:border-[#2C2926] pb-1">
-                          <ExternalLink size={12} /> View File
-                        </button>
+                        {kpay && kpay.slipUrl ? (
+                          <a
+                            href={getImageSrc(kpay.slipUrl)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#8B857A] hover:text-[#2C2926] transition-colors border-b border-transparent hover:border-[#2C2926] pb-1"
+                          >
+                            <ExternalLink size={12} /> View Slip
+                          </a>
+                        ) : (
+                          <span className="text-[9px] text-stone-300 font-bold uppercase tracking-widest">N/A</span>
+                        )}
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Card View */}
             <div className="md:hidden divide-y divide-stone-100">
-              {orders.map((order) => (
-                <div key={order.id} className="p-6 space-y-6">
-                  <div className="flex justify-between items-start">
+              {orders.map((order) => {
+                let kpay: { slipUrl?: string } | null = null;
+                try {
+                  if (order.paymentDetails) kpay = JSON.parse(order.paymentDetails);
+                } catch {
+                  /* ignore */
+                }
+                return (
+                  <div key={order.id} className="p-6 space-y-6">
+                    <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-black uppercase tracking-tight">
                         #{order.orderNumber}
@@ -838,12 +872,25 @@ export default function AdminDashboard() {
                         <option value="CANCELLED">CANCELLED</option>
                       </select>
                     </div>
-                    <Button variant="outline" className="w-full h-12 rounded-none text-[9px] font-black uppercase tracking-widest border-stone-200">
-                      <ExternalLink size={12} className="mr-2" /> View Full Manifest
-                    </Button>
+                    {kpay && kpay.slipUrl ? (
+                      <a
+                        href={getImageSrc(kpay.slipUrl)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="w-full block"
+                      >
+                        <Button variant="outline" className="w-full h-12 rounded-none text-[9px] font-black uppercase tracking-widest border-stone-200 flex items-center justify-center gap-2">
+                          <ExternalLink size={12} /> View Payment Slip
+                        </Button>
+                      </a>
+                    ) : (
+                      <Button disabled variant="outline" className="w-full h-12 rounded-none text-[9px] font-black uppercase tracking-widest border-stone-200 opacity-50">
+                        <ExternalLink size={12} className="mr-2" /> No Slip Uploaded
+                      </Button>
+                    )}
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         )}
@@ -1033,7 +1080,7 @@ export default function AdminDashboard() {
                       <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Order</th>
                       <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Customer</th>
                       <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Method</th>
-                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">KPay Details</th>
+                      <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Payment Slip</th>
                       <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Amount</th>
                       <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Payment</th>
                       <th className="p-6 text-[9px] uppercase tracking-[0.25em] font-black text-[#8B857A]">Action</th>
@@ -1041,7 +1088,7 @@ export default function AdminDashboard() {
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {orders.map((order) => {
-                      let kpay: { username?: string; phone?: string; transactionLast5?: string; transactionTime?: string } | null = null;
+                      let kpay: { username?: string; phone?: string; transactionLast5?: string; transactionTime?: string; slipUrl?: string } | null = null;
                       try { if (order.paymentDetails) kpay = JSON.parse(order.paymentDetails); } catch { /* ignore */ }
                       return (
                         <tr key={order.id} className="hover:bg-stone-50/80 transition-all group">
@@ -1075,29 +1122,24 @@ export default function AdminDashboard() {
                             </span>
                           </td>
                           <td className="p-6">
-                            {kpay ? (
-                              <div className="space-y-1.5 max-w-[220px]">
-                                <div className="flex items-center gap-2">
-                                  <UserIcon size={10} className="text-blue-500 shrink-0" />
-                                  <span className="text-[10px] font-bold truncate">{kpay.username}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Phone size={10} className="text-blue-500 shrink-0" />
-                                  <span className="text-[10px] font-mono font-bold truncate">{kpay.phone}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Hash size={10} className="text-blue-500 shrink-0" />
-                                  <span className="text-[10px] font-mono font-black tracking-widest">•••{kpay.transactionLast5}</span>
-                                </div>
-                                {kpay.transactionTime && (
-                                  <div className="flex items-center gap-2">
-                                    <Clock size={10} className="text-blue-500 shrink-0" />
-                                    <span className="text-[10px] text-stone-500 font-medium">
-                                      {new Date(kpay.transactionTime).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
+                            {kpay && kpay.slipUrl ? (
+                              <a
+                                href={getImageSrc(kpay.slipUrl)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block w-16 h-16 bg-stone-100 overflow-hidden border border-stone-200 hover:scale-105 transition-transform"
+                                title="Click to view full slip"
+                              >
+                                <img
+                                  src={getImageSrc(kpay.slipUrl)}
+                                  className="w-full h-full object-cover"
+                                  alt="Payment Slip"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = IMAGE_FALLBACK_SRC;
+                                  }}
+                                />
+                              </a>
                             ) : (
                               <span className="text-[9px] text-stone-300 font-bold uppercase tracking-widest">N/A</span>
                             )}
@@ -1164,7 +1206,7 @@ export default function AdminDashboard() {
               {/* Mobile Card View */}
               <div className="lg:hidden divide-y divide-stone-100">
                 {orders.map((order) => {
-                  let kpay: { username?: string; phone?: string; transactionLast5?: string; transactionTime?: string } | null = null;
+                  let kpay: { username?: string; phone?: string; transactionLast5?: string; transactionTime?: string; slipUrl?: string } | null = null;
                   try { if (order.paymentDetails) kpay = JSON.parse(order.paymentDetails); } catch { /* ignore */ }
                   return (
                     <div key={order.id} className="p-6 space-y-5">
@@ -1216,32 +1258,27 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* KPay Details */}
-                      {kpay && (
+                      {/* Payment Slip */}
+                      {kpay && kpay.slipUrl && (
                         <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-5 space-y-3 border-l-4 border-blue-500">
-                          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 mb-3">KBZ Pay Transaction</p>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Username</p>
-                              <p className="text-xs font-bold text-[#2C2926]">{kpay.username}</p>
-                            </div>
-                            <div>
-                              <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Phone</p>
-                              <p className="text-xs font-bold font-mono text-[#2C2926]">{kpay.phone}</p>
-                            </div>
-                            <div>
-                              <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Txn ID</p>
-                              <p className="text-xs font-black font-mono tracking-widest text-[#2C2926]">•••{kpay.transactionLast5}</p>
-                            </div>
-                            {kpay.transactionTime && (
-                              <div>
-                                <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest mb-0.5">Time</p>
-                                <p className="text-xs font-medium text-[#2C2926]">
-                                  {new Date(kpay.transactionTime).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-600 mb-3">Payment Slip</p>
+                          <a
+                            href={getImageSrc(kpay.slipUrl)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block w-24 h-24 bg-white overflow-hidden border border-stone-200 hover:scale-105 transition-transform"
+                            title="Click to view full slip"
+                          >
+                            <img
+                              src={getImageSrc(kpay.slipUrl)}
+                              className="w-full h-full object-cover"
+                              alt="Payment Slip"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = IMAGE_FALLBACK_SRC;
+                              }}
+                            />
+                          </a>
                         </div>
                       )}
 
@@ -1306,6 +1343,7 @@ export default function AdminDashboard() {
                 onClick={() => {
                   setIsModalOpen(false);
                   setEditingProduct(null);
+                  setSelectedImageFile(null);
                 }}
                 className="absolute top-6 right-6 p-2 hover:rotate-90 transition-transform duration-500 z-20"
               >
@@ -1338,6 +1376,7 @@ export default function AdminDashboard() {
                   className="space-y-10"
                   onSubmit={async (e) => {
                     e.preventDefault();
+                    setIsSubmittingProduct(true);
                     const formData = new FormData(e.currentTarget);
                     const token = getAuthToken();
                     const url = editingProduct
@@ -1363,10 +1402,13 @@ export default function AdminDashboard() {
                       );
                       setIsModalOpen(false);
                       setEditingProduct(null);
+                      setSelectedImageFile(null);
                       fetchProducts();
                       fetchStats();
                     } catch {
                       toast.error("Transmission Failed.");
+                    } finally {
+                      setIsSubmittingProduct(false);
                     }
                   }}
                 >
@@ -1466,34 +1508,69 @@ export default function AdminDashboard() {
                     />
                   </div>
 
-                  <div className="relative border-2 border-dashed border-stone-200 p-8 text-center group hover:border-[#2C2926] transition-colors cursor-pointer">
+                  <div className="relative border-2 border-dashed border-stone-200 p-8 text-center group hover:border-[#2C2926] transition-colors cursor-pointer min-h-[200px] flex items-center justify-center bg-stone-50/50">
                     <input
                       name="image"
                       type="file"
                       required={!editingProduct}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setSelectedImageFile(e.target.files[0]);
+                        }
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
-                    <Upload
-                      className="mx-auto text-stone-300 mb-4 group-hover:text-[#2C2926] transition-colors"
-                      size={32}
-                    />
-                    <p className="text-[10px] font-bold uppercase tracking-widest">
-                      {editingProduct
-                        ? "Update Imagery (Optional)"
-                        : "Transmit High-Res Imagery"}
-                    </p>
-                    <p className="text-[8px] text-stone-400 mt-2 uppercase tracking-widest">
-                      TAP TO BROWSE FILES
-                    </p>
+                    {selectedImagePreview || (editingProduct && editingProduct.imageUrl) ? (
+                      <div className="relative w-full max-w-[200px] h-[150px] overflow-hidden bg-white border border-stone-200 shadow-md flex items-center justify-center z-0">
+                        <img
+                          src={selectedImagePreview || getImageSrc(editingProduct?.imageUrl)}
+                          alt="Product Preview"
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = IMAGE_FALLBACK_SRC;
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-[#2C2926]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
+                          <Upload className="h-6 w-6 text-white" />
+                          <p className="text-[9px] font-black uppercase tracking-widest">Replace Image</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 z-0">
+                        <Upload
+                          className="mx-auto text-stone-300 mb-4 group-hover:text-[#2C2926] transition-colors"
+                          size={32}
+                        />
+                        <p className="text-[10px] font-bold uppercase tracking-widest">
+                          Transmit High-Res Imagery
+                        </p>
+                        <p className="text-[8px] text-stone-400 mt-2 uppercase tracking-widest">
+                          TAP TO BROWSE FILES
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-6 pb-12 md:pb-0">
-                    <Button
-                      type="submit"
-                      className="w-full h-16 bg-[#2C2926] rounded-none uppercase font-black tracking-[0.3em] text-[10px] shadow-2xl"
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      {editingProduct ? "Confirm Revision." : "Confirm Entry."}
-                    </Button>
+                      <Button
+                        type="submit"
+                        disabled={isSubmittingProduct}
+                        className="w-full h-16 bg-[#2C2926] rounded-none uppercase font-black tracking-[0.3em] text-[10px] shadow-2xl transition-all flex items-center justify-center gap-3"
+                      >
+                        {isSubmittingProduct ? (
+                          <Spinner className="h-4 w-4 text-white" />
+                        ) : editingProduct ? (
+                          "Confirm Revision."
+                        ) : (
+                          "Confirm Entry."
+                        )}
+                      </Button>
+                    </motion.div>
                   </div>
                 </form>
               </div>

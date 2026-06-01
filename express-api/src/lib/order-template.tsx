@@ -1,3 +1,5 @@
+import config from "../config";
+
 export function getOrderConfirmationEmailHtml(
   customerName: string,
   orderNumber: string,
@@ -101,7 +103,7 @@ export function getOrderConfirmationEmailHtml(
               <!-- CTA -->
               <tr>
                 <td style="padding: 0 40px 60px 40px; text-align: center;">
-                  <a href="http://localhost:5173/track-order?id=${orderNumber}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Live Tracking Dashboard</a>
+                  <a href="${config.frontendUrl}/track-order?id=${orderNumber}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Live Tracking Dashboard</a>
                 </td>
               </tr>
               
@@ -164,7 +166,7 @@ export function getTransitEmailHtml(
               <!-- CTA -->
               <tr>
                 <td style="padding: 0 40px 60px 40px; text-align: center;">
-                  <a href="http://localhost:5173/track-order?id=${orderNumber}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Track Live Movement</a>
+                  <a href="${config.frontendUrl}/track-order?id=${orderNumber}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Track Live Movement</a>
                 </td>
               </tr>
               
@@ -229,7 +231,7 @@ export function getDeliveredEmailHtml(
               <!-- CTA -->
               <tr>
                 <td style="padding: 0 40px 60px 40px; text-align: center;">
-                  <a href="http://localhost:5173" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Explore More Collections</a>
+                  <a href="${config.frontendUrl}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Explore More Collections</a>
                 </td>
               </tr>
               

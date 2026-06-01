@@ -7,6 +7,7 @@ import { sendEmail } from "./email";
 import { passwordSchema } from "./validation";
 import { getResetPasswordEmailHtml } from "./email-template";
 import { getVerificationEmailHtml } from "./verify-email";
+import config from "../config";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -35,7 +36,7 @@ export const auth = betterAuth({
     emailOTP({
       // emailOTP plugin မှာ Link ပို့ချင်ရင်လည်း sendVerificationOTP ကိုပဲ သုံးရပါတယ်
       async sendVerificationOTP({ email, otp, type }) {
-        const resetLink = `http://localhost:5173/reset-password?token=${otp}&email=${email}`;
+        const resetLink = `${config.frontendUrl}/reset-password?token=${otp}&email=${email}`;
         if (type === "forget-password") {
           const htmlContent = getResetPasswordEmailHtml(email, resetLink);
           // Password Reset အတွက် Link (URL) ကို ပို့ပေးမည့်အပိုင်း
@@ -82,5 +83,7 @@ export const auth = betterAuth({
       }
     }),
   },
-  trustedOrigins: ["http://localhost:5173"],
+  trustedOrigins: config.frontendUrl.includes(",")
+    ? config.frontendUrl.split(",")
+    : [config.frontendUrl],
 });

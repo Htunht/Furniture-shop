@@ -110,7 +110,7 @@ export function SignupForm({
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: "http://localhost:5173",
+        callbackURL: window.location.origin,
       });
     } catch (error: unknown) {
       console.log(error);
