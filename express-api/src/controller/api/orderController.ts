@@ -3,6 +3,7 @@ import { sendEmail } from "../../lib/email";
 import { getOrderConfirmationEmailHtml } from "../../lib/order-template";
 import prisma from "../../lib/prisma";
 import config from "../../config";
+import { uploadToSupabase } from "../../lib/supabase";
 
 const getAbsoluteImageUrl = (product: any) => {
   const rawUrl = product?.images?.[0]?.url || product?.imageUrl;
@@ -43,6 +44,11 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
   }
 
   try {
+    let slipUrl: string | null = null;
+    if (req.file) {
+      slipUrl = await uploadToSupabase(req.file);
+    }
+
     // 1. Save to Database
     await prisma.order.create({
       data: {
@@ -50,8 +56,8 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
         userId: userId || null,
         totalAmount: parsedTotal,
         paymentMethod: paymentMethod || "COD",
-        paymentDetails: req.file
-          ? JSON.stringify({ slipUrl: `/uploads/${req.file.filename}` })
+        paymentDetails: slipUrl
+          ? JSON.stringify({ slipUrl })
           : null,
         address: address || "Address not specified",
         customerName,

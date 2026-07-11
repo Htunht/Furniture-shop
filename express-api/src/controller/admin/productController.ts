@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
 import { createProductService } from "../../service/admin/productCreateService";
 import prisma from "../../lib/prisma";
+import { uploadToSupabase } from "../../lib/supabase";
 
 export const createProduct = [
   body("name", "Product name is required").trim().notEmpty(),
@@ -19,9 +20,13 @@ export const createProduct = [
     }
 
     const { name, description, price, discount, inventory, category, type } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     try {
+      let imageUrl: string | undefined = undefined;
+      if (req.file) {
+        imageUrl = await uploadToSupabase(req.file);
+      }
+
       const createdProductId = await createProductService({
         name,
         description,
@@ -49,13 +54,16 @@ import { Prisma } from "../../generated/prisma";
 export const updateProduct = async (req: Request, res: Response) => {
   const id = req.params.id as string;
   const { name, description, price, discount, inventory, category, type } = req.body;
-  const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
   if (!id) {
     return res.status(400).json({ error: "Product ID is required for revisions." });
   }
 
   try {
+    let imageUrl: string | undefined = undefined;
+    if (req.file) {
+      imageUrl = await uploadToSupabase(req.file);
+    }
     // Correctly parse and validate inputs
     const parsedPrice = price !== undefined ? new Prisma.Decimal(price) : undefined;
     const parsedDiscount = discount !== undefined ? new Prisma.Decimal(discount) : undefined;
