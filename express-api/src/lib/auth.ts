@@ -83,7 +83,7 @@ export const auth = betterAuth({
       }
     }),
   },
-  trustedOrigins: config.frontendUrl.includes(",")
+  trustedOrigins: (config.frontendUrl.includes(",")
     ? config.frontendUrl.split(",")
-    : [config.frontendUrl],
+    : [config.frontendUrl]).map(url => url.trim().replace(/\/$/, "")),
 });

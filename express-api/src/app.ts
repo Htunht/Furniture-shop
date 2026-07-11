@@ -19,11 +19,13 @@ if (!fs.existsSync(uploadsDir)) {
 app.use("/uploads", express.static(uploadsDir));
 
 // Configure CORS middleware
+const allowedOrigins = config.frontendUrl.includes(",") 
+  ? config.frontendUrl.split(",").map(url => url.trim().replace(/\/$/, ""))
+  : config.frontendUrl.trim().replace(/\/$/, "");
+
 app.use(
   cors({
-    origin: config.frontendUrl.includes(",") 
-      ? config.frontendUrl.split(",") 
-      : config.frontendUrl,
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   }),
