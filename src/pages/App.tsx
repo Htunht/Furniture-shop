@@ -48,7 +48,7 @@ function App() {
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 
-  const products = data?.pages.flatMap((page) => page.data) ?? [];
+  const products = data?.pages.flatMap((page) => page?.data || []).filter(Boolean) ?? [];
 
   return (
     <div className="pb-20">

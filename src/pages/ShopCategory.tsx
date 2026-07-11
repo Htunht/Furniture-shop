@@ -106,7 +106,7 @@ export default function ShopCategoryPage() {
           category: categoryMap[category || "living-room"],
         },
       });
-      return response.data.data as Product[];
+      return (response.data?.data || []) as Product[];
     },
   });
 
@@ -117,8 +117,8 @@ export default function ShopCategoryPage() {
       const response = await api.get("/products", {
         params: { limit: 8 },
       });
-      return response.data.data.filter(
-        (p: Product) => p.category.name !== categoryMap[category || ""],
+      return (response.data?.data || []).filter(
+        (p: Product) => p?.category?.name !== categoryMap[category || ""],
       ) as Product[];
     },
   });
