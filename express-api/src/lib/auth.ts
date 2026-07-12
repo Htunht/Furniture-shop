@@ -87,3 +87,4 @@ export const auth = betterAuth({
     ? config.frontendUrl.split(",")
     : [config.frontendUrl]).map(url => url.trim().replace(/\/$/, "")),
 });
+ 
