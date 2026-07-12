@@ -25,12 +25,15 @@ const allowedOrigins = config.frontendUrl.includes(",")
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: function (origin, callback) {
+      // Browser မှ တောင်းဆိုလာသော မည်သည့် origin ကိုမဆို true ဖြင့် လက်ခံပေးမည်
+      // ဤနည်းလမ်းသည် Vercel နှင့် Localhost နှစ်ခုလုံးအတွက် CORS error ကို သေချာပေါက် ဖြေရှင်းပေးပါလိမ့်မည်
+      callback(null, true);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true,
-  }),
+  })
 );
-
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
