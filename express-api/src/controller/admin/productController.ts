@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
 import { createProductService } from "../../service/admin/productCreateService";
 import prisma from "../../lib/prisma";
-import { uploadToSupabase } from "../../lib/supabase";
+
 
 export const createProduct = [
   body("name", "Product name is required").trim().notEmpty(),
@@ -24,7 +24,7 @@ export const createProduct = [
     try {
       let imageUrl: string | undefined = undefined;
       if (req.file) {
-        imageUrl = await uploadToSupabase(req.file);
+        imageUrl = req.file.path;
       }
 
       const createdProductId = await createProductService({
@@ -62,7 +62,7 @@ export const updateProduct = async (req: Request, res: Response) => {
   try {
     let imageUrl: string | undefined = undefined;
     if (req.file) {
-      imageUrl = await uploadToSupabase(req.file);
+      imageUrl = req.file.path;
     }
     // Correctly parse and validate inputs
     const parsedPrice = price !== undefined ? new Prisma.Decimal(price) : undefined;

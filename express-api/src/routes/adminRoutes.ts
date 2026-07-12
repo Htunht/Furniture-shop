@@ -1,14 +1,10 @@
 import express from "express";
-import multer from "multer";
+import { upload } from "../lib/cloudinary";
 import * as productAdminController from "../controller/admin/productController";
 import * as dashboardController from "../controller/admin/adminDashboardController";
 import { authGuard, adminGuard } from "../middleware/auth";
 
 const router = express.Router();
-
-const storage = multer.memoryStorage();
-
-const upload = multer({ storage: storage });
 
 // Apply admin guard to all routes in this router
 router.use(authGuard);
