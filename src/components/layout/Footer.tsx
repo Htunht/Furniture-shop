@@ -18,7 +18,7 @@ export function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16 border-b border-[#E5E0D8] pb-16">
           <div className="flex flex-col gap-6">
             <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tight font-outfit">
-              Havenly
+              Heavenly
             </h2>
             <p className="text-[#5C574F] max-w-md text-sm leading-relaxed">
               Elevate your living space with our thoughtfully curated collection
@@ -204,7 +204,7 @@ export function Footer() {
         {/* Bottom Section: Copyright */}
         <div className="pt-8 border-t border-[#E5E0D8] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#8B857A]">
           <p>
-            © {new Date().getFullYear()} Havenly Furniture Store. All rights
+            © {new Date().getFullYear()} Heavenly Furniture Store. All rights
             reserved.
           </p>
           <div className="flex items-center gap-6">

@@ -3,6 +3,7 @@ import { sendEmail } from "../../lib/email";
 import { getOrderConfirmationEmailHtml } from "../../lib/order-template";
 import prisma from "../../lib/prisma";
 import config from "../../config";
+import { deleteLocalUploads, getLocalUploadUrl } from "../../lib/localUpload";
 
 
 const getAbsoluteImageUrl = (product: any) => {
@@ -27,10 +28,20 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
   } = req.body;
   const userId = (req as any).session?.user?.id;
 
+  const discardUploadedSlip = async () => {
+    if (!req.file) return;
+    try {
+      await deleteLocalUploads([getLocalUploadUrl(req.file)]);
+    } catch (error) {
+      console.error("INVALID ORDER SLIP CLEANUP ERROR:", error);
+    }
+  };
+
   if (typeof items === "string") {
     try {
       items = JSON.parse(items);
-    } catch (e) {
+    } catch {
+      await discardUploadedSlip();
       return res.status(400).json({ error: "Invalid items format" });
     }
   }
@@ -38,6 +49,7 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
   const parsedTotal = parseFloat(total);
 
   if (!email || !customerName || !orderNumber || !items || isNaN(parsedTotal)) {
+    await discardUploadedSlip();
     return res
       .status(400)
       .json({ error: "Missing required order information" });
@@ -46,7 +58,7 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
   try {
     let slipUrl: string | null = null;
     if (req.file) {
-      slipUrl = req.file.path;
+      slipUrl = getLocalUploadUrl(req.file);
     }
 
     // 1. Save to Database
@@ -99,7 +111,7 @@ export const sendOrderConfirmation = async (req: Request, res: Response) => {
 
     await sendEmail({
       to: email,
-      subject: `Order Confirmation #${orderNumber} - Tiger Balm`,
+      subject: `Order Confirmation #${orderNumber} - Heavenly`,
       text: `Thank you for your order, ${customerName}! Your order #${orderNumber} has been received.`,
       html: htmlContent,
     });

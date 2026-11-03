@@ -13,7 +13,7 @@ const sections = [
     title: "How We Use Information",
     icon: <Eye className="w-5 h-5" />,
     content:
-      "We use the information we collect to provide, maintain, and improve our services, process transactions, send you technical notices, and communicate with you about products, services, and events offered by Tiger Balm.",
+      "We use the information we collect to provide, maintain, and improve our services, process transactions, send you technical notices, and communicate with you about products, services, and events offered by Heavenly.",
   },
   {
     id: "sharing",
@@ -102,7 +102,7 @@ export default function PrivacyPolicyPage() {
                   <div className="text-[#5C574F] leading-relaxed text-lg space-y-6">
                     <p>{section.content}</p>
                     <p>
-                      At Tiger Balm, we believe that your data belongs to you.
+                      At Heavenly, we believe that your data belongs to you.
                       We never sell your personal information to third-party
                       advertisers. Our systems are designed with privacy-first
                       principles to ensure your shopping experience is both

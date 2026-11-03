@@ -22,7 +22,7 @@ export function MobileNav() {
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
                 H
               </div>
-              <span className="text-lg font-bold">Havenly</span>
+              <span className="text-lg font-bold">Heavenly</span>
             </div>
             <Dialog.Close asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
@@ -92,7 +92,7 @@ export function MobileNav() {
               </Button>
             </div>
             <p className="text-center text-[10px] text-muted-foreground font-medium">
-              &copy; 2026 Havenly Furniture Store.
+              &copy; 2026 Heavenly Furniture Store.
             </p>
           </div>
         </div>

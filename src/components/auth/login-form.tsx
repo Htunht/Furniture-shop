@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { Link, useNavigate } from "react-router";
 
-import { cn, wait } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/input-group";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { signIn } from "@/lib/auth-client";
+import { authClient, signIn } from "@/lib/auth-client";
 import { Eye, EyeOffIcon } from "lucide-react";
 
 const formSchema = z.object({
@@ -57,10 +57,24 @@ export function LoginForm({
     setError(null);
     setIsLoading(true);
     try {
-      await signIn.email({ email: data.email, password: data.password });
-      // wait for 2 mins
-      await wait(2000);
-      navigate("/");
+      const { error: signInError } = await signIn.email({
+        email: data.email,
+        password: data.password,
+      });
+      if (signInError) {
+        throw new Error(signInError.message);
+      }
+
+      const { data: session, error: sessionError } =
+        await authClient.getSession();
+      if (sessionError) {
+        throw new Error(sessionError.message);
+      }
+      if (!session) {
+        throw new Error("Unable to load your account after signing in.");
+      }
+
+      navigate(session.user.role === "admin" ? "/admin" : "/");
     } catch (error: unknown) {
       setError(
         error instanceof Error ? error.message : "Invalid verification code",
@@ -77,7 +91,7 @@ export function LoginForm({
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: window.location.origin,
+        callbackURL: `${window.location.origin}/login/callback`,
       });
     } catch (error: unknown) {
       console.log(error);

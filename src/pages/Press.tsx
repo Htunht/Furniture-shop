@@ -11,14 +11,14 @@ const pressReleases = [
   {
     date: "April 12, 2026",
     title:
-      "Tiger Balm Unveils 'The Zen Collection' - A New Era of Minimalist Living",
+      "Heavenly Unveils 'The Zen Collection' - A New Era of Minimalist Living",
     category: "Product Launch",
     excerpt:
       "The latest collection focuses on sustainable materials and modular designs that adapt to any urban living space.",
   },
   {
     date: "March 05, 2026",
-    title: "Tiger Balm Named Top Sustainable Furniture Brand of the Year",
+    title: "Heavenly Named Top Sustainable Furniture Brand of the Year",
     category: "Award",
     excerpt:
       "Recognized for our commitment to zero-waste manufacturing and ethical sourcing practices across our global supply chain.",
@@ -26,7 +26,7 @@ const pressReleases = [
   {
     date: "February 18, 2026",
     title:
-      "Expanding the Horizon: Tiger Balm Opens New Design Studio in Copenhagen",
+      "Expanding the Horizon: Heavenly Opens New Design Studio in Copenhagen",
     category: "Company News",
     excerpt:
       "A new hub for Scandinavian design influence and collaborative craftsmanship in the heart of Denmark.",

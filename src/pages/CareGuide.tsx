@@ -112,7 +112,7 @@ export default function CareGuidePage() {
             Care Guide
           </h1>
           <p className="max-w-2xl mx-auto text-[#5C574F] text-lg md:text-xl leading-relaxed">
-            Protect your investment and keep your Tiger Balm pieces looking
+            Protect your investment and keep your Heavenly pieces looking
             beautiful for years to come with our expert maintenance tips.
           </p>
         </div>

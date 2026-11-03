@@ -11,7 +11,7 @@ const commitments = [
     icon: <Recycle className="w-8 h-8" />,
     title: "Circular Design",
     description:
-      "We design for longevity and easy disassembly. At the end of its life, every Tiger Balm piece can be recycled or repurposed.",
+      "We design for longevity and easy disassembly. At the end of its life, every Heavenly piece can be recycled or repurposed.",
   },
   {
     icon: <Wind className="w-8 h-8" />,
@@ -92,7 +92,7 @@ export default function SustainabilityPage() {
               of home."
             </p>
             <div className="mt-12 font-bold uppercase tracking-widest text-sm text-[#8B857A]">
-              — The Tiger Balm Design Collective
+              — The Heavenly Design Collective
             </div>
           </div>
         </div>

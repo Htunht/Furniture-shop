@@ -3,6 +3,7 @@ import HomeScreen from "./pages/App";
 import ErrorScreen from "./pages/error";
 import RootLayout from "./components/layout/Rootlayout";
 import LoginScreen from "./pages/auth/Login";
+import LoginCallbackPage from "./pages/auth/LoginCallback";
 import SignupPage from "./pages/auth/Signup";
 import authrootlayout from "./components/layout/authrootlayout";
 import verifyOTPPage from "./pages/auth/verify-otp";
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
     path: "/login",
     Component: authrootlayout,
     children: [{ index: true, Component: LoginScreen }],
+  },
+  {
+    path: "/login/callback",
+    Component: LoginCallbackPage,
   },
   {
     path: "/forgot-password",

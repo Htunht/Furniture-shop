@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import prisma from "../../lib/prisma";
 import { sendEmail } from "../../lib/email";
 import { getTransitEmailHtml, getDeliveredEmailHtml } from "../../lib/order-template";
+import { deleteLocalUploads } from "../../lib/localUpload";
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
@@ -16,9 +17,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     // Fetch stats in parallel for better performance
     const [totalProducts, totalOrders, products, todayStats, yesterdayStats] =
       await Promise.all([
-        prisma.product.count(),
+        prisma.product.count({ where: { status: { not: "ARCHIVED" } } }),
         prisma.order.count(),
-        prisma.product.findMany({ select: { inventory: true } }),
+        prisma.product.findMany({
+          where: { status: { not: "ARCHIVED" } },
+          select: { inventory: true },
+        }),
         prisma.order.aggregate({
           where: { createdAt: { gte: today } },
           _sum: { totalAmount: true },
@@ -112,14 +116,14 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
       if (status === "TRANSIT" && order.customerEmail) {
         await sendEmail({
           to: order.customerEmail,
-          subject: `Order In Transit #${order.orderNumber} - Tiger Balm`,
+          subject: `Order In Transit #${order.orderNumber} - Heavenly`,
           text: `Your order #${order.orderNumber} is now in transit.`,
           html: getTransitEmailHtml(order.customerName, order.orderNumber),
         });
       } else if (status === "DELIVERED" && order.customerEmail) {
         await sendEmail({
           to: order.customerEmail,
-          subject: `Order Delivered #${order.orderNumber} - Tiger Balm`,
+          subject: `Order Delivered #${order.orderNumber} - Heavenly`,
           text: `Your order #${order.orderNumber} has been delivered. Thank you for shopping with us!`,
           html: getDeliveredEmailHtml(order.customerName, order.orderNumber),
         });
@@ -136,10 +140,30 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 export const getProducts = async (req: Request, res: Response) => {
   try {
     const products = await prisma.product.findMany({
-      include: { category: true, type: true },
+      where: { status: { not: "ARCHIVED" } },
+      include: { category: true, type: true, images: true },
       orderBy: { createdAt: "desc" },
     });
-    res.json(products);
+
+    res.json(
+      products.map((product) => {
+        const imagePath = product.imageUrl?.startsWith("/uploads/")
+          ? path.join(process.cwd(), "uploads", path.basename(product.imageUrl))
+          : null;
+        const hasLocalImage = imagePath && fs.existsSync(imagePath);
+        const fallbackImage = product.images.find((image) =>
+          /^https?:\/\//i.test(image.url),
+        );
+
+        return {
+          ...product,
+          imageUrl:
+            product.imageUrl && (!imagePath || hasLocalImage)
+              ? product.imageUrl
+              : (fallbackImage?.url ?? product.imageUrl),
+        };
+      }),
+    );
   } catch {
     res.status(500).json({ error: "Failed to fetch products" });
   }
@@ -153,43 +177,53 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 
   try {
-    // 1. Find product
-    const product = await prisma.product.findUnique({ where: { id } });
-    
+    const [product, orderItemsCount] = await Promise.all([
+      prisma.product.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          imageUrl: true,
+          images: { select: { url: true } },
+        },
+      }),
+      prisma.orderItem.count({ where: { productId: id } }),
+    ]);
+
     if (!product) {
       return res.status(404).json({ error: "Design not found" });
     }
 
-    // 2. Check if product is referenced in any orders
-    const orderItemsCount = await prisma.orderItem.count({
-      where: { productId: id },
-    });
-
     if (orderItemsCount > 0) {
-      // Soft delete: Archive the product
       await prisma.product.update({
         where: { id },
         data: { status: "ARCHIVED" },
       });
-      return res.json({ message: "Design archived (retains transaction history)." });
+      return res.json({
+        archived: true,
+        message: "Design archived (retains transaction history).",
+      });
     }
 
-    // 3. Delete associated image file from disk (only if hard deleting)
-    if (product.imageUrl) {
-      const fileName = product.imageUrl.split("/").pop();
-      if (fileName) {
-        const filePath = path.join(process.cwd(), "uploads", fileName);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-          console.log(`PURGE: Deleted image file ${fileName}`);
-        }
-      }
-    }
-
-    // 4. Hard delete from database
     await prisma.product.delete({ where: { id } });
-    
-    res.json({ message: "Design decommissioned and physical files purged." });
+
+    let imageCleanupFailed = false;
+    try {
+      await deleteLocalUploads([
+        product.imageUrl ?? "",
+        ...product.images.map((image) => image.url),
+      ]);
+    } catch (error) {
+      imageCleanupFailed = true;
+      console.error("LOCAL IMAGE CLEANUP ERROR:", error);
+    }
+
+    res.json({
+      archived: false,
+      imageCleanupFailed,
+      message: imageCleanupFailed
+        ? "Design deleted, but its local image could not be removed."
+        : "Design and local images deleted.",
+    });
   } catch (error) {
     console.error("DELETE ERROR:", error);
     res.status(500).json({ error: "Failed to decommission design" });

@@ -44,7 +44,7 @@ export default function ErrorScreen() {
         </div>
 
         <div className="pt-8 opacity-20">
-           <span className="font-outfit font-bold uppercase tracking-tighter text-2xl">Tiger Balm</span>
+           <span className="font-outfit font-bold uppercase tracking-tighter text-2xl">Heavenly</span>
         </div>
       </div>
     </div>

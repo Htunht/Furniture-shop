@@ -36,7 +36,15 @@ import { Eye, EyeOffIcon } from "lucide-react";
 
 const resetSchema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters."),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .max(50, "Password must be 50 characters or less.")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        "Include an uppercase letter, a lowercase letter, a number, and a special character.",
+      )
+      .regex(/^\S*$/, "Password must not contain spaces."),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -66,27 +74,43 @@ export default function ResetPassword() {
     setIsLoading(true);
     setStatus(null);
 
-    // Better Auth Client က URL ထဲက ?token=... ကို auto ဖမ်းသွားမှာဖြစ်လို့
-    // ကျွန်တော်တို့က password အသစ်ပဲ ပို့ပေးဖို့ လိုပါတယ်
-    const { error } = await authClient.emailOtp.resetPassword({
-      email: email,
-      otp: token,
-      password: data.password,
-    });
+    try {
+      if (!email || !token) {
+        setStatus({
+          type: "error",
+          message: "This password reset link is invalid or incomplete.",
+        });
+        return;
+      }
 
-    setIsLoading(false);
+      const { error } = await authClient.emailOtp.resetPassword({
+        email,
+        otp: token,
+        password: data.password,
+      });
 
-    if (error) {
+      if (error) {
+        setStatus({
+          type: "error",
+          message: error.message || "Invalid or expired token.",
+        });
+      } else {
+        setStatus({
+          type: "success",
+          message: "Password updated! Redirecting to login...",
+        });
+        setTimeout(() => navigate("/login"), 2000);
+      }
+    } catch (error) {
       setStatus({
         type: "error",
-        message: error.message || "Invalid or expired token.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to reset password. Please try again.",
       });
-    } else {
-      setStatus({
-        type: "success",
-        message: "Password updated! Redirecting to login...",
-      });
-      setTimeout(() => navigate("/login"), 2000);
+    } finally {
+      setIsLoading(false);
     }
   }
 

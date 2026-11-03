@@ -186,8 +186,8 @@ export default function CareersPage() {
             </h2>
             <p className="text-[#5C574F] text-lg mb-10">
               We're always growing and looking for passionate people. Send us
-              your resume and tell us why you'd like to be part of the Tiger
-              Balm team.
+              your resume and tell us why you'd like to be part of the Heavenly
+              team.
             </p>
             <Button
               variant="link"

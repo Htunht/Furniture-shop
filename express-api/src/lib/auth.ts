@@ -7,7 +7,14 @@ import { sendEmail } from "./email";
 import { passwordSchema } from "./validation";
 import { getResetPasswordEmailHtml } from "./email-template";
 import { getVerificationEmailHtml } from "./verify-email";
-import config from "../config";
+import config, { getFrontendBaseUrl } from "../config";
+
+function createPasswordResetLink(otp: string, email: string) {
+  const resetUrl = new URL("/reset-password", getFrontendBaseUrl());
+  resetUrl.searchParams.set("token", otp);
+  resetUrl.searchParams.set("email", email);
+  return resetUrl.toString();
+}
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -26,6 +33,17 @@ export const auth = betterAuth({
       },
     },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          if (user.email.trim().toLowerCase() === config.adminEmail) {
+            return { data: { ...user, role: "admin" } };
+          }
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -34,19 +52,17 @@ export const auth = betterAuth({
   plugins: [
     admin(),
     emailOTP({
-      // emailOTP plugin မှာ Link ပို့ချင်ရင်လည်း sendVerificationOTP ကိုပဲ သုံးရပါတယ်
       async sendVerificationOTP({ email, otp, type }) {
-        const resetLink = `${config.frontendUrl}/reset-password?token=${otp}&email=${email}`;
         if (type === "forget-password") {
+          const resetLink = createPasswordResetLink(otp, email);
           const htmlContent = getResetPasswordEmailHtml(email, resetLink);
-          // Password Reset အတွက် Link (URL) ကို ပို့ပေးမည့်အပိုင်း
-          void sendEmail({
+          await sendEmail({
             to: email,
             subject: "Reset Your Password",
-            text: htmlContent, // HTML email သုံးလျှင် ဒါကို သုံးပါ
+            text: `Reset your password using this link: ${resetLink}`,
+            html: htmlContent,
           });
         } else {
-          // Email Verification အတွက် OTP ပို့ပေးမည့်အပိုင်း
           const htmlContent = getVerificationEmailHtml(otp);
           await sendEmail({
             to: email,
@@ -71,7 +87,8 @@ export const auth = betterAuth({
       if (
         ctx.path === "/sign-up/email" ||
         ctx.path === "/reset-password" ||
-        ctx.path === "/change-password"
+        ctx.path === "/change-password" ||
+        ctx.path === "/email-otp/reset-password"
       ) {
         const password = ctx.body.password || ctx.body.newPassword;
         const { error } = passwordSchema.safeParse(password);

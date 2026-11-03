@@ -5,24 +5,21 @@ import { auth } from "./lib/auth";
 import router from "./routes";
 import rateLimit from "express-rate-limit";
 import fs from "fs";
-import path from "path";
 import config from "./config";
+import { localOnlyUploads, uploadsDir } from "./lib/localUpload";
 
 const app = express();
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-app.use("/uploads", express.static(uploadsDir));
+if (config.nodeEnv === "development") {
+  app.use("/uploads", localOnlyUploads, express.static(uploadsDir));
+}
 
 // Configure CORS middleware
-const allowedOrigins = config.frontendUrl.includes(",") 
-  ? config.frontendUrl.split(",").map(url => url.trim().replace(/\/$/, ""))
-  : config.frontendUrl.trim().replace(/\/$/, "");
-
 app.use(
   cors({
     origin: function (origin, callback) {

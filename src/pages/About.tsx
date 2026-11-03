@@ -8,7 +8,7 @@ export default function AboutPage() {
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1920&q=80" 
-            alt="Havenly Furniture Studio" 
+            alt="Heavenly Furniture Studio"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/40"></div>

@@ -63,7 +63,7 @@ export default function ShopPage() {
       {/* Hero Section */}
       <section className="py-20 md:py-32 bg-[#EBE7DF] border-b border-[#E5E0D8]">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm tracking-[0.4em] uppercase mb-4 font-bold text-[#8B857A]">Tiger Balm Collections</p>
+          <p className="text-sm tracking-[0.4em] uppercase mb-4 font-bold text-[#8B857A]">Heavenly Collections</p>
           <h1 className="text-6xl md:text-9xl font-bold uppercase tracking-tighter mb-8 font-outfit leading-none">
             Our Shop
           </h1>

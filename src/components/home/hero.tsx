@@ -97,7 +97,7 @@ export function Hero() {
       {/* Side Vertical Text */}
       <div className="absolute right-0 bottom-4 hidden xl:block">
         <p className="text-[10px] font-bold uppercase tracking-[0.8em] text-[#8B857A]">
-          Est. 1994 — Tiger Balm Design Studio
+          Est. 1994 — Heavenly Design Studio
         </p>
       </div>
     </section>

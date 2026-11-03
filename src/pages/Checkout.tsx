@@ -48,7 +48,7 @@ export default function CheckoutPage() {
   }, [kpaySlip]);
 
   const ADMIN_KPAY = {
-    name: "Tiger Balm Store",
+    name: "Heavenly Store",
     phone: "+959 777 788 888",
     qr: "/kpay-qr.png",
   };
@@ -365,11 +365,10 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Method Selector Tabs */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {[
                     { id: "cod", label: "Cash on Delivery", icon: <Wallet size={18} /> },
                     { id: "kpay",   label: "KBZ Pay",          icon: <Smartphone size={18} /> },
-                    { id: "ayapay", label: "AYA Pay",          icon: <Smartphone size={18} /> },
                   ].map((method) => (
                     <button
                       key={method.id}

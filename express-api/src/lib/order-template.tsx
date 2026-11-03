@@ -1,4 +1,4 @@
-import config from "../config";
+import { getFrontendBaseUrl } from "../config";
 
 export function getOrderConfirmationEmailHtml(
   customerName: string,
@@ -9,6 +9,9 @@ export function getOrderConfirmationEmailHtml(
   paymentMethod: string,
   orderTime: string,
 ): string {
+  const trackingUrl = new URL("/track-order", getFrontendBaseUrl());
+  trackingUrl.searchParams.set("id", orderNumber);
+
   const itemRows = items
     .map(
       (item) => `
@@ -41,7 +44,7 @@ export function getOrderConfirmationEmailHtml(
               <!-- Header -->
               <tr>
                 <td style="padding: 60px 40px 40px 40px; text-align: center;">
-                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Tiger Balm • Havenly</div>
+                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Heavenly</div>
                   <h1 style="margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.1;">Order Confirmed</h1>
                   <p style="margin: 20px 0 0 0; color: #8B857A; font-size: 14px; font-weight: 500;">Thank you for your purchase, ${customerName}. Your architectural sanctuary is being prepared.</p>
                 </td>
@@ -103,7 +106,7 @@ export function getOrderConfirmationEmailHtml(
               <!-- CTA -->
               <tr>
                 <td style="padding: 0 40px 60px 40px; text-align: center;">
-                  <a href="${config.frontendUrl}/track-order?id=${orderNumber}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Live Tracking Dashboard</a>
+                  <a href="${trackingUrl.toString()}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Live Tracking Dashboard</a>
                 </td>
               </tr>
               
@@ -112,7 +115,7 @@ export function getOrderConfirmationEmailHtml(
                 <td style="padding: 40px; background-color: #F4F1ED; text-align: center;">
                   <p style="margin: 0; font-size: 11px; line-height: 1.8; color: #8B857A; font-weight: 500;">
                     Questions regarding your architectural selection? Reply to this email.<br>
-                    © 2026 Tiger Balm Furniture • Havenly Design Studio. All rights reserved.
+                    © 2026 Heavenly Furniture. All rights reserved.
                   </p>
                 </td>
               </tr>
@@ -129,6 +132,9 @@ export function getTransitEmailHtml(
   customerName: string,
   orderNumber: string,
 ): string {
+  const trackingUrl = new URL("/track-order", getFrontendBaseUrl());
+  trackingUrl.searchParams.set("id", orderNumber);
+
   return `
     <!DOCTYPE html>
     <html>
@@ -145,7 +151,7 @@ export function getTransitEmailHtml(
               <!-- Header -->
               <tr>
                 <td style="padding: 60px 40px 40px 40px; text-align: center;">
-                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Tiger Balm • Logistics</div>
+                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Heavenly Logistics</div>
                   <h1 style="margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.1;">Order in Transit</h1>
                   <p style="margin: 20px 0 0 0; color: #8B857A; font-size: 14px; font-weight: 500; line-height: 1.6;">
                     Hello ${customerName},<br>
@@ -166,7 +172,7 @@ export function getTransitEmailHtml(
               <!-- CTA -->
               <tr>
                 <td style="padding: 0 40px 60px 40px; text-align: center;">
-                  <a href="${config.frontendUrl}/track-order?id=${orderNumber}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Track Live Movement</a>
+                  <a href="${trackingUrl.toString()}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Track Live Movement</a>
                 </td>
               </tr>
               
@@ -175,7 +181,7 @@ export function getTransitEmailHtml(
                 <td style="padding: 40px; background-color: #F4F1ED; text-align: center;">
                   <p style="margin: 0; font-size: 11px; line-height: 1.8; color: #8B857A; font-weight: 500;">
                     Questions regarding your architectural selection? Reply to this email.<br>
-                    © 2026 Tiger Balm Furniture • Havenly Design Studio. All rights reserved.
+                    © 2026 Heavenly Furniture. All rights reserved.
                   </p>
                 </td>
               </tr>
@@ -192,6 +198,8 @@ export function getDeliveredEmailHtml(
   customerName: string,
   orderNumber: string,
 ): string {
+  const shopUrl = new URL("/", getFrontendBaseUrl());
+
   return `
     <!DOCTYPE html>
     <html>
@@ -208,7 +216,7 @@ export function getDeliveredEmailHtml(
               <!-- Header -->
               <tr>
                 <td style="padding: 60px 40px 40px 40px; text-align: center;">
-                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Tiger Balm • Havenly</div>
+                  <div style="font-size: 12px; font-weight: bold; letter-spacing: 0.3em; text-transform: uppercase; color: #8B857A; margin-bottom: 16px;">Heavenly</div>
                   <h1 style="margin: 0; font-size: 32px; font-weight: bold; text-transform: uppercase; letter-spacing: -0.02em; line-height: 1.1;">Welcome Home.</h1>
                   <p style="margin: 20px 0 0 0; color: #8B857A; font-size: 14px; font-weight: 500; line-height: 1.6;">
                     Hello ${customerName},<br>
@@ -231,7 +239,7 @@ export function getDeliveredEmailHtml(
               <!-- CTA -->
               <tr>
                 <td style="padding: 0 40px 60px 40px; text-align: center;">
-                  <a href="${config.frontendUrl}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Explore More Collections</a>
+                  <a href="${shopUrl.toString()}" style="display: inline-block; padding: 20px 40px; background-color: #2C2926; color: #ffffff; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s ease;">Explore More Collections</a>
                 </td>
               </tr>
               
@@ -239,8 +247,8 @@ export function getDeliveredEmailHtml(
               <tr>
                 <td style="padding: 40px; background-color: #F4F1ED; text-align: center;">
                   <p style="margin: 0; font-size: 11px; line-height: 1.8; color: #8B857A; font-weight: 500;">
-                    We'd love to see how you style it. Tag us on Instagram @TigerBalmFurniture.<br>
-                    © 2026 Tiger Balm Furniture • Havenly Design Studio. All rights reserved.
+                    We'd love to see how you style it. Tag us on Instagram @HeavenlyFurniture.<br>
+                    © 2026 Heavenly Furniture. All rights reserved.
                   </p>
                 </td>
               </tr>

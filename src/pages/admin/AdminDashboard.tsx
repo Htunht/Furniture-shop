@@ -82,6 +82,9 @@ const ADMIN_API_BASE_URL = `${API_BASE_URL}/api/v1/admin`;
 
 export default function AdminDashboard() {
   const { data: session, isPending: sessionLoading } = useSession();
+  const localUploadsEnabled =
+    import.meta.env.DEV &&
+    ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
   const [activeTab, setActiveTab] = useState("overview");
   const [stats, setStats] = useState<Stats | null>(null);
   const [orders, setOrders] = useState<DashboardOrder[]>([]);
@@ -227,15 +230,18 @@ export default function AdminDashboard() {
         },
       );
       if (!res.ok) throw new Error("Update failed");
-      toast.success("Order Manifest Updated");
+      toast.success("Order updated");
       fetchOrders();
     } catch {
-      toast.error("Failed to update manifest");
+      toast.error("Failed to update order");
     }
   };
 
   const deleteProduct = async (id: string) => {
     if (!confirm("Are you sure you want to decommission this piece?")) return;
+    const product = products.find((item) => item.id === id);
+    setProducts((current) => current.filter((item) => item.id !== id));
+
     try {
       const res = await fetch(
         `${ADMIN_API_BASE_URL}/products/${id}`,
@@ -246,10 +252,22 @@ export default function AdminDashboard() {
         },
       );
       if (!res.ok) throw new Error("Delete failed");
-      toast.success("Product Decommissioned");
-      fetchProducts();
-      fetchStats();
+      const result: { archived: boolean; imageCleanupFailed?: boolean } =
+        await res.json();
+      if (result.archived) {
+        toast.success("Product removed from inventory; order history preserved");
+      } else {
+        if (result.imageCleanupFailed) {
+          toast.error("Product deleted, but local image cleanup failed");
+        } else {
+          toast.success("Product and image deleted");
+        }
+        void fetchStats();
+      }
     } catch {
+      if (product) {
+        setProducts((current) => [product, ...current]);
+      }
       toast.error("Failed to delete product");
     }
   };
@@ -279,10 +297,10 @@ export default function AdminDashboard() {
               whileHover={{ rotate: 90 }}
               className="w-10 h-10 bg-[#2C2926] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg"
             >
-              T
+              H
             </motion.div>
             <span className="font-outfit font-black uppercase tracking-tighter text-2xl text-[#2C2926]">
-              Tiger.
+              Heavenly.
             </span>
           </div>
           <button
@@ -304,13 +322,13 @@ export default function AdminDashboard() {
         {[
           {
             id: "overview",
-            label: "Intelligence",
+            label: "Dashboard",
             icon: <LayoutDashboard size={18} />,
           },
-          { id: "products", label: "Inventory", icon: <Package size={18} /> },
-          { id: "orders", label: "Manifests", icon: <ShoppingBag size={18} /> },
-          { id: "accounts", label: "Accounts", icon: <CreditCard size={18} /> },
-          { id: "users", label: "Architects", icon: <Users size={18} /> },
+          { id: "products", label: "Products", icon: <Package size={18} /> },
+          { id: "orders", label: "Orders", icon: <ShoppingBag size={18} /> },
+          { id: "accounts", label: "Payments", icon: <CreditCard size={18} /> },
+          { id: "users", label: "Customers", icon: <Users size={18} /> },
           {
             id: "store",
             label: "Back to Shop",
@@ -409,15 +427,20 @@ export default function AdminDashboard() {
                 <Plus size={24} className="rotate-45" />
               </button>
               <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-[#8B857A]">
-                Console / {activeTab}
+                Admin / {
+                  activeTab === "overview" ? "Dashboard" :
+                  activeTab === "products" ? "Products" :
+                  activeTab === "orders" ? "Orders" :
+                  activeTab === "accounts" ? "Payments" : "Customers"
+                }
               </p>
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-8xl font-black uppercase tracking-tighter font-outfit leading-[0.8]">
-              {activeTab === "overview" && "Intelligence."}
-              {activeTab === "products" && "The Vault."}
-              {activeTab === "orders" && "Timeline."}
-              {activeTab === "accounts" && "Accounts."}
-              {activeTab === "users" && "Roster."}
+              {activeTab === "overview" && "Dashboard"}
+              {activeTab === "products" && "Products"}
+              {activeTab === "orders" && "Orders"}
+              {activeTab === "accounts" && "Payments"}
+              {activeTab === "users" && "Customers"}
             </h1>
           </motion.div>
 
@@ -448,30 +471,30 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               {[
                 {
-                  label: "Gross Revenue (24H)",
+                  label: "Revenue Today",
                   value: `$${(stats?.todayRevenue || 0).toLocaleString()}`,
                   change: `${stats?.growthPercentage || 0}% vs yesterday`,
                   icon: <TrendingUp className="text-green-500" size={24} />,
                   color: "bg-green-500",
                 },
                 {
-                  label: "Order Volume",
+                  label: "Total Orders",
                   value: stats?.totalOrders || 0,
-                  change: "Total Transactions",
+                  change: "Orders received",
                   icon: <ShoppingBag size={24} />,
                   color: "bg-[#2C2926]",
                 },
                 {
-                  label: "Global Inventory",
+                  label: "Items in Stock",
                   value: stats?.totalInventory || 0,
-                  change: "Units Across Showroom",
+                  change: "Across all products",
                   icon: <Package size={24} />,
                   color: "bg-orange-500",
                 },
                 {
-                  label: "Active Curator Hub",
+                  label: "Products in Store",
                   value: stats?.totalProducts || 0,
-                  change: "Unique Architectural Listings",
+                  change: "Different products listed",
                   icon: <LayoutDashboard size={24} />,
                   color: "bg-[#2C2926]",
                 },
@@ -689,12 +712,12 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Orders Tab - Detailed Manifest */}
+        {/* Orders Tab */}
         {activeTab === "orders" && (
           <div className="bg-white border border-[#E5E0D8] shadow-2xl overflow-hidden">
             <div className="p-6 md:p-10 border-b border-[#E5E0D8] flex flex-col sm:flex-row justify-between sm:items-center bg-stone-50/50 gap-6">
               <h3 className="text-xl font-black uppercase tracking-tight font-outfit">
-                Manifest Synchronization
+                Orders
               </h3>
               <div className="flex flex-wrap gap-3">
                 <Button
@@ -720,7 +743,7 @@ export default function AdminDashboard() {
                       Identification
                     </th>
                     <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                      Architect
+                      Customer
                     </th>
                     <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
                       Valuation
@@ -899,7 +922,7 @@ export default function AdminDashboard() {
           <div className="bg-white border border-[#E5E0D8] shadow-2xl overflow-hidden">
             <div className="p-6 md:p-10 border-b border-[#E5E0D8] flex flex-col sm:flex-row justify-between sm:items-center bg-stone-50/50 gap-4">
               <h3 className="text-xl font-black uppercase tracking-tight font-outfit">
-                Architectural Roster
+                Customers
               </h3>
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A]">
                 {users.length} Total Registered
@@ -911,7 +934,7 @@ export default function AdminDashboard() {
                 <thead>
                   <tr className="border-b border-[#E5E0D8]">
                     <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
-                      Architect
+                      Customer
                     </th>
                     <th className="p-8 text-[10px] uppercase tracking-[0.3em] font-black text-[#8B857A]">
                       Privileges
@@ -1000,7 +1023,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <Button variant="outline" className="w-full h-12 rounded-none text-[9px] font-black uppercase tracking-widest border-stone-200">
-                    Access Architect Profile
+                    View Customer
                   </Button>
                 </div>
               ))}
@@ -1008,7 +1031,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Accounts Tab - Payment Verification */}
+        {/* Payments Tab */}
         {activeTab === "accounts" && (
           <div className="space-y-12">
             {/* Summary Cards */}
@@ -1056,7 +1079,7 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            {/* Accounts Table */}
+            {/* Payments Table */}
             <div className="bg-white border border-[#E5E0D8] shadow-2xl overflow-hidden">
               <div className="p-6 md:p-10 border-b border-[#E5E0D8] flex flex-col sm:flex-row justify-between sm:items-center bg-stone-50/50 gap-6">
                 <div>
@@ -1394,12 +1417,20 @@ export default function AdminDashboard() {
                       });
 
                       if (!res.ok) throw new Error("Operation failed");
+                      const result: { imageCleanupFailed?: boolean } =
+                        await res.json();
 
-                      toast.success(
-                        editingProduct
-                          ? "Design Updated."
-                          : "Design Entry Successful.",
-                      );
+                      if (result.imageCleanupFailed) {
+                        toast.error(
+                          "Design updated, but the previous local image could not be removed.",
+                        );
+                      } else {
+                        toast.success(
+                          editingProduct
+                            ? "Design Updated."
+                            : "Design Entry Successful.",
+                        );
+                      }
                       setIsModalOpen(false);
                       setEditingProduct(null);
                       setSelectedImageFile(null);
@@ -1494,63 +1525,51 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                      Narrative Description
-                    </label>
-                    <textarea
-                      name="description"
-                      required
-                      defaultValue={editingProduct?.description}
-                      rows={3}
-                      placeholder="DESCRIBE THE PIECE'S SOUL..."
-                      className="w-full bg-transparent border-b-2 border-stone-100 py-4 outline-none focus:border-[#2C2926] transition-colors text-sm font-medium resize-none"
-                    />
-                  </div>
-
-                  <div className="relative border-2 border-dashed border-stone-200 p-8 text-center group hover:border-[#2C2926] transition-colors cursor-pointer min-h-[200px] flex items-center justify-center bg-stone-50/50">
-                    <input
-                      name="image"
-                      type="file"
-                      required={!editingProduct}
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setSelectedImageFile(e.target.files[0]);
-                        }
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    />
-                    {selectedImagePreview || (editingProduct && editingProduct.imageUrl) ? (
-                      <div className="relative w-full max-w-[200px] h-[150px] overflow-hidden bg-white border border-stone-200 shadow-md flex items-center justify-center z-0">
-                        <img
-                          src={selectedImagePreview || getImageSrc(editingProduct?.imageUrl)}
-                          alt="Product Preview"
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = IMAGE_FALLBACK_SRC;
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-[#2C2926]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
-                          <Upload className="h-6 w-6 text-white" />
-                          <p className="text-[9px] font-black uppercase tracking-widest">Replace Image</p>
+                  {localUploadsEnabled && (
+                    <div className="relative border-2 border-dashed border-stone-200 p-8 text-center group hover:border-[#2C2926] transition-colors cursor-pointer min-h-[200px] flex items-center justify-center bg-stone-50/50">
+                      <input
+                        name="image"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setSelectedImageFile(e.target.files[0]);
+                          }
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      {selectedImagePreview || (editingProduct && editingProduct.imageUrl) ? (
+                        <div className="relative w-full max-w-[200px] h-[150px] overflow-hidden bg-white border border-stone-200 shadow-md flex items-center justify-center z-0">
+                          <img
+                            src={selectedImagePreview || getImageSrc(editingProduct?.imageUrl)}
+                            alt="Product Preview"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = IMAGE_FALLBACK_SRC;
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-[#2C2926]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-2 text-white">
+                            <Upload className="h-6 w-6 text-white" />
+                            <p className="text-[9px] font-black uppercase tracking-widest">Replace Image</p>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 z-0">
-                        <Upload
-                          className="mx-auto text-stone-300 mb-4 group-hover:text-[#2C2926] transition-colors"
-                          size={32}
-                        />
-                        <p className="text-[10px] font-bold uppercase tracking-widest">
-                          Transmit High-Res Imagery
-                        </p>
-                        <p className="text-[8px] text-stone-400 mt-2 uppercase tracking-widest">
-                          TAP TO BROWSE FILES
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                      ) : (
+                        <div className="space-y-2 z-0">
+                          <Upload
+                            className="mx-auto text-stone-300 mb-4 group-hover:text-[#2C2926] transition-colors"
+                            size={32}
+                          />
+                          <p className="text-[10px] font-bold uppercase tracking-widest">
+                            Upload Image (localhost only)
+                          </p>
+                          <p className="text-[8px] text-stone-400 mt-2 uppercase tracking-widest">
+                            TAP TO BROWSE FILES
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="pt-6 pb-12 md:pb-0">
                     <motion.div

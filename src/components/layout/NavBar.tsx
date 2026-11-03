@@ -43,7 +43,7 @@ export function Navbar() {
               <Link to="/">H</Link>
             </div>
             <span className="text-xl font-bold tracking-tight hidden sm:block font-outfit">
-              <Link to="/">Havenly</Link>
+              <Link to="/">Heavenly</Link>
             </span>
           </div>
         </div>

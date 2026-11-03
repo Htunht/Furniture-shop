@@ -11,7 +11,7 @@ const sections = [
     id: "acceptance",
     title: "Acceptance of Terms",
     content:
-      "By accessing and using the Tiger Balm website and services, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services. These terms apply to all visitors, users, and others who access or use the service.",
+      "By accessing and using the Heavenly website and services, you agree to be bound by these Terms of Service. If you do not agree to all of these terms, do not use our services. These terms apply to all visitors, users, and others who access or use the service.",
   },
   {
     id: "orders",
@@ -23,7 +23,7 @@ const sections = [
     id: "shipping",
     title: "Shipping and Delivery",
     content:
-      "Delivery times are estimates and not guaranteed. Tiger Balm is not responsible for delays caused by shipping carriers or customs. Risk of loss and title for items purchased from Tiger Balm pass to you upon delivery of the items to the carrier.",
+      "Delivery times are estimates and not guaranteed. Heavenly is not responsible for delays caused by shipping carriers or customs. Risk of loss and title for items purchased from Heavenly pass to you upon delivery of the items to the carrier.",
   },
   {
     id: "returns",
@@ -35,7 +35,7 @@ const sections = [
     id: "intellectual",
     title: "Intellectual Property",
     content:
-      "The Service and its original content, features, and functionality are and will remain the exclusive property of Tiger Balm and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of Tiger Balm.",
+      "The Service and its original content, features, and functionality are and will remain the exclusive property of Heavenly and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of Heavenly.",
   },
 ];
 

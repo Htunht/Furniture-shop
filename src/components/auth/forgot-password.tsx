@@ -50,24 +50,32 @@ export function ForgetPassword() {
     setIsLoading(true);
     setStatus(null);
 
-    const { error } = await authClient.emailOtp.sendVerificationOtp({
-      email: data.email,
-      type: "forget-password",
-    });
+    try {
+      const { error } = await authClient.emailOtp.sendVerificationOtp({
+        email: data.email,
+        type: "forget-password",
+      });
 
-    setIsLoading(false);
-
-    if (error) {
+      if (error) {
+        setStatus({
+          type: "error",
+          message: error.message || "Something went wrong.",
+        });
+      } else {
+        setStatus({
+          type: "success",
+          message: "A reset link has been sent to your email.",
+        });
+        form.reset();
+      }
+    } catch (error) {
       setStatus({
         type: "error",
-        message: error.message || "Something went wrong.",
+        message:
+          error instanceof Error ? error.message : "Failed to send reset link.",
       });
-    } else {
-      setStatus({
-        type: "success",
-        message: "A reset link has been sent to your email.",
-      });
-      form.reset();
+    } finally {
+      setIsLoading(false);
     }
   }
 

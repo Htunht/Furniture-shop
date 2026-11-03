@@ -43,7 +43,7 @@ const defaultOrderSteps = [
     date: "April 24, 2026",
     time: "09:00 AM",
     completed: true,
-    description: "Package has been handed over to Tiger Express."
+    description: "Package has been handed over to Heavenly Express."
   },
   {
     status: "In Transit",
@@ -131,7 +131,7 @@ export default function TrackOrderPage() {
     const uiStages = [
       { id: 'PLACED', title: 'Order Placed', desc: 'Your order has been received and is being prepared.' },
       { id: 'PROCESSING', title: 'Processing', desc: 'Our craftsmen are selecting and inspecting your pieces.' },
-      { id: 'SHIPPED', title: 'Shipped', desc: 'Package has been handed over to Tiger Express.' },
+      { id: 'SHIPPED', title: 'Shipped', desc: 'Package has been handed over to Heavenly Express.' },
       { id: 'TRANSIT', title: 'In Transit', desc: 'Your package is currently moving towards the local distribution center.' },
       { id: 'DELIVERED', title: 'Delivered', desc: 'Signature will be required upon delivery.' }
     ];
@@ -244,7 +244,7 @@ export default function TrackOrderPage() {
                           <p className="text-[10px] font-bold uppercase tracking-widest text-[#8B857A] mb-2">
                             Shipping Method
                           </p>
-                          <p className="font-bold text-lg uppercase">Tiger White-Glove</p>
+                          <p className="font-bold text-lg uppercase">Heavenly White-Glove</p>
                         </div>
                       </div>
                     </div>
@@ -425,7 +425,7 @@ export default function TrackOrderPage() {
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8B857A] mb-1">Shipping Address</p>
                           <p className="text-lg font-bold font-outfit uppercase leading-tight">
-                            {orderData?.address || "123 Tiger Lane, Havenly Heights, NY 10001"}
+                            {orderData?.address || "123 Heavenly Lane, Heavenly Heights, NY 10001"}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 text-green-600">
@@ -444,7 +444,7 @@ export default function TrackOrderPage() {
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] mb-1 text-stone-400">Logistics Partner</p>
-                        <h4 className="text-xl font-bold font-outfit uppercase">Tiger White-Glove Express</h4>
+                        <h4 className="text-xl font-bold font-outfit uppercase">Heavenly White-Glove Express</h4>
                       </div>
                     </div>
                     <div className="text-center md:text-right">
@@ -519,7 +519,7 @@ export default function TrackOrderPage() {
                       <div className="space-y-4 mt-6">
                         <button className="w-full h-16 border border-[#2C2926] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#2C2926] hover:text-white transition-all group">
                           <Phone size={16} className="group-hover:rotate-12 transition-transform" /> 
-                          +1 (800) TIGER-LOG
+                          +1 (800) HEAVENLY-LOG
                         </button>
                         <button className="w-full h-16 bg-[#F9F8F6] flex items-center justify-center gap-4 text-xs font-bold uppercase tracking-widest hover:bg-[#EBE7DF] transition-all">
                           <Mail size={16} /> 
@@ -547,7 +547,7 @@ export default function TrackOrderPage() {
                       <p className={`text-[10px] font-bold uppercase tracking-widest leading-loose ${orderData?.paymentStatus === "FAILED" ? "text-red-700" : "text-[#5C574F]"}`}>
                         {orderData?.paymentStatus === "FAILED"
                           ? "Your order will not ship until payment is verified. Please reach out immediately."
-                          : "Insured & Guaranteed by Havenly Shield™"}
+                          : "Insured & Guaranteed by Heavenly Shield™"}
                       </p>
                     </div>
                   </div>

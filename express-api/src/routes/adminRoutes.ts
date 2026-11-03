@@ -1,5 +1,5 @@
 import express from "express";
-import { upload } from "../lib/cloudinary";
+import { localOnlyUpload, upload } from "../lib/localUpload";
 import * as productAdminController from "../controller/admin/productController";
 import * as dashboardController from "../controller/admin/adminDashboardController";
 import { authGuard, adminGuard } from "../middleware/auth";
@@ -10,8 +10,8 @@ const router = express.Router();
 router.use(authGuard);
 router.use(adminGuard);
 
-router.post("/products/create", upload.single("image"), productAdminController.createProduct);
-router.patch("/products/:id", upload.single("image"), productAdminController.updateProduct);
+router.post("/products/create", localOnlyUpload, upload.single("image"), productAdminController.createProduct);
+router.patch("/products/:id", localOnlyUpload, upload.single("image"), productAdminController.updateProduct);
 router.get("/products", dashboardController.getProducts);
 router.delete("/products/:id", dashboardController.deleteProduct);
 
